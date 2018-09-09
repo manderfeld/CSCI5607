@@ -17,7 +17,7 @@
 using namespace std;
 
 //Name of image texture
-string textureName = "test.ppm";
+string textureName = "goldy.ppm";
 
 //Globals to store the state of the square (position, width, and angle)
 float g_pos_x = 0.0f;
@@ -62,6 +62,7 @@ unsigned char* loadImage(int& img_w, int& img_h){
    //Open the texture image file
    ifstream ppmFile;
    ppmFile.open(textureName.c_str());
+printf("File: %s\n", textureName.c_str());
    if (!ppmFile){
       printf("ERROR: Texture file '%s' not found.\n",textureName.c_str());
       exit(1);
@@ -274,7 +275,7 @@ int main(int argc, char *argv[]){
    int img_w, img_h;
    unsigned char* img_data = loadImage(img_w,img_h);
    printf("Loaded Image of size (%d,%d)\n",img_w,img_h);
-   memset(img_data,0,4*img_w*img_h); //Load all zeros
+   //memset(img_data,0,4*img_w*img_h); //Load all zeros
    //Load the texture into memory
    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_w, img_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data);
    glGenerateMipmap(GL_TEXTURE_2D);
