@@ -17,7 +17,7 @@
 using namespace std;
 
 //Name of image texture
-string textureName = "goldy.ppm";
+string textureName = "test.ppm";
 
 //Globals to store the state of the square (position, width, and angle)
 float g_pos_x = 0.0f;
@@ -62,7 +62,6 @@ unsigned char* loadImage(int& img_w, int& img_h){
    //Open the texture image file
    ifstream ppmFile;
    ppmFile.open(textureName.c_str());
-printf("File: %s\n", textureName.c_str());
    if (!ppmFile){
       printf("ERROR: Texture file '%s' not found.\n",textureName.c_str());
       exit(1);
@@ -92,18 +91,31 @@ printf("File: %s\n", textureName.c_str());
    //while(ppmFile>> ...){
    //    //Store the RGB pixel data from the file into an array
    //}
+   int red, green, blue;
+   int pixelNum = 0;
+   unsigned char* red_data = new unsigned char[img_w*img_h];
+   unsigned char* green_data = new unsigned char[img_w*img_h];
+   unsigned char* blue_data = new unsigned char[img_w*img_h];
+   while(ppmFile >> red >> green >> blue)
+   {
+      red_data[pixelNum] = red;
+      pixelNum++;
+   }
 
    //TODO: This loop puts in fake data, replace with the actual pixels read from the file
+   pixelNum = 0;
    for (int i = 0; i < img_h; i++){
       float fi = i/(float)img_h;
       for (int j = 0; j < img_w; j++){
          float fj = j/(float)img_w;
-         img_data[i*img_w*4 + j*4] = 50;  //Red
+         img_data[i*img_w*4 + j*4] = red_data[pixelNum];  //Red
          img_data[i*img_w*4 + j*4 + 1] = fj*150;  //Green
          img_data[i*img_w*4 + j*4 + 2] = fi*250;  //Blue
          img_data[i*img_w*4 + j*4 + 3] = 255;  //Alpha
+         pixelNum++;
       }
    }
+
 
    return img_data;
 }
