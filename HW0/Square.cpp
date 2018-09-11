@@ -17,7 +17,7 @@
 using namespace std;
 
 //Name of image texture
-string textureName = "test.ppm";
+string textureName = "brick.ppm";
 
 //Globals to store the state of the square (position, width, and angle)
 float g_pos_x = 0.0f;
@@ -99,6 +99,8 @@ unsigned char* loadImage(int& img_w, int& img_h){
    while(ppmFile >> red >> green >> blue)
    {
       red_data[pixelNum] = red;
+      green_data[pixelNum] = green;
+      blue_data[pixelNum] = blue;
       pixelNum++;
    }
 
@@ -108,9 +110,9 @@ unsigned char* loadImage(int& img_w, int& img_h){
       float fi = i/(float)img_h;
       for (int j = 0; j < img_w; j++){
          float fj = j/(float)img_w;
-         img_data[i*img_w*4 + j*4] = red_data[pixelNum];  //Red
-         img_data[i*img_w*4 + j*4 + 1] = fj*150;  //Green
-         img_data[i*img_w*4 + j*4 + 2] = fi*250;  //Blue
+         img_data[i*img_w*4 + j*4] = red_data[pixelNum];        //Red
+         img_data[i*img_w*4 + j*4 + 1] = green_data[pixelNum];  //Green
+         img_data[i*img_w*4 + j*4 + 2] = blue_data[pixelNum];   //Blue
          img_data[i*img_w*4 + j*4 + 3] = 255;  //Alpha
          pixelNum++;
       }
