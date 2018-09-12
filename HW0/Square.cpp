@@ -182,7 +182,11 @@ void mouseDragged(float m_x, float m_y){
    
    if (g_bScale)
    {
-   		g_size = (m_x - g_clicked_x);
+   		// Works for top edge and right edge (where you're going up and/or to the right)
+   		// For bottom and left edges it does the opposite
+   		g_size = g_size + .3 * (m_x - g_clicked_x);
+   				   // The .3 acts as a bit of a delay factor so the square doesn't infinitely increase in size if the mouse doesn't move
+   		printf("%f\n", g_size);
 
    		/*
    		if (g_clicked_x != m_x)
