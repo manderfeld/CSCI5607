@@ -182,6 +182,9 @@ void mouseDragged(float m_x, float m_y){
    
    if (g_bScale)
    {
+   		g_size = (m_x - g_clicked_x);
+
+   		/*
    		if (g_clicked_x != m_x)
    		{
    			if (g_clicked_x < m_x)
@@ -191,7 +194,7 @@ void mouseDragged(float m_x, float m_y){
    				// Enlarge the square
    				//printf("g_clicked_x:  %f\n", g_clicked_x);
    				//printf("        m_x:  %f\n", m_x);
-   				g_size = m_x - g_clicked_x;
+   				//g_size += m_x - g_clicked_x;
    				//printf("%f\n", screen_width / (m_x - g_clicked_x));
    			}
    			else if (g_clicked_x > m_x)
@@ -209,7 +212,7 @@ void mouseDragged(float m_x, float m_y){
    			{
    				//printf("y down\n");
    			}
-   		}
+   		}*/
    		// g_clicked_x   -   where the user last clicked
    		// m_x           -   where the user is dragging the cursor
    		//Compute the new size, g_size, based on the mouse positions
