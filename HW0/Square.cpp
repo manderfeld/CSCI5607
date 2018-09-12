@@ -186,11 +186,17 @@ void mouseDragged(float m_x, float m_y){
    		{
    			if (g_clicked_x < m_x)
    			{
-   				printf("x forwards\n");
+   				// Assuming the user is clicking on the right edge of the square
+   				// The cursor is moving "forwards" (left to right)
+   				// Enlarge the square
+   				//printf("g_clicked_x:  %f\n", g_clicked_x);
+   				//printf("        m_x:  %f\n", m_x);
+   				g_size = m_x - g_clicked_x;
+   				//printf("%f\n", screen_width / (m_x - g_clicked_x));
    			}
    			else if (g_clicked_x > m_x)
    			{
-   				printf("x backwards\n");
+   				//printf("x backwards\n");
    			}
    		}
    		else if (g_clicked_y != m_y)
