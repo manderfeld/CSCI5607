@@ -22,7 +22,7 @@ string textureName = "brick.ppm";
 //Globals to store the state of the square (position, width, and angle)
 float g_pos_x = 0.0f;
 float g_pos_y = 0.0f;
-float g_size = 0.6f;
+float g_size = 0.5f;
 float g_angle = 0;
 
 float vertices[] = {  //These values should be updated to match the square's state when it changes
@@ -51,11 +51,6 @@ bool g_bTranslate = false;
 bool g_bRotate = false;
 bool g_bScale = false;
 
-//////////////////////////
-///  Begin your code here
-/////////////////////////
-
-//TODO: Read from ASCII (P6) PPM files
 //Inputs are output variables for returning the image width and heigth
 unsigned char* loadImage(int& img_w, int& img_h){
 
@@ -87,10 +82,6 @@ unsigned char* loadImage(int& img_w, int& img_h){
       exit(1);
    }
 
-   //TODO:
-   //while(ppmFile>> ...){
-   //    //Store the RGB pixel data from the file into an array
-   //}
    int red, green, blue;
    int pixelNum = 0;
    unsigned char* red_data = new unsigned char[img_w*img_h];
@@ -104,7 +95,6 @@ unsigned char* loadImage(int& img_w, int& img_h){
       pixelNum++;
    }
 
-   //TODO: This loop puts in fake data, replace with the actual pixels read from the file
    pixelNum = 0;
    for (int i = 0; i < img_h; i++){
       float fi = i/(float)img_h;
@@ -169,10 +159,12 @@ void mouseClicked(float m_x, float m_y){
    printf("Normalized click coord: %f, %f\n",x,y);
    
    if (x > 1.05 || y > 1.05 || x < -1.05 || y < -1.05) return; //TODO: Test your understanding: Why 1.05 and not 1?
-   if (x < .9 && x > -.9 && y < .9 && y > -.9){ //TODO: Test your understanding: What happens if you change .9 to .8?
+   if (x < .9 && x > -.9 && y < .9 && y > -.9)
+   { //TODO: Test your understanding: What happens if you change .9 to .8?
       g_bTranslate = true;
    }
-   else{
+   else
+   {
       g_bScale = true;
    }
 }
@@ -188,8 +180,33 @@ void mouseDragged(float m_x, float m_y){
       g_pos_y = m_y-g_clicked_y+g_lastCenter_y;
    }
    
-   if (g_bScale){
-      //Compute the new size, g_size, based on the mouse positions
+   if (g_bScale)
+   {
+   		if (g_clicked_x != m_x)
+   		{
+   			if (g_clicked_x < m_x)
+   			{
+   				printf("x forwards\n");
+   			}
+   			else if (g_clicked_x > m_x)
+   			{
+   				printf("x backwards\n");
+   			}
+   		}
+   		else if (g_clicked_y != m_y)
+   		{
+   			if (g_clicked_y < m_y)
+   			{
+   				//printf("y up\n");
+   			}
+   			else if (g_clicked_y > m_y)
+   			{
+   				//printf("y down\n");
+   			}
+   		}
+   		// g_clicked_x   -   where the user last clicked
+   		// m_x           -   where the user is dragging the cursor
+   		//Compute the new size, g_size, based on the mouse positions
    }
    
    if (g_bRotate){
@@ -250,7 +267,7 @@ int main(int argc, char *argv[]){
 
    float aspect = screen_width/(float)screen_height; //aspect ratio (needs to be updated if the window is resized)
 	
-	updateVertices(); //set initial position of the square to match it's state
+	updateVertices(); //set initial position of the square to match its state
 	
 	//Create a context to draw in
 	SDL_GLContext context = SDL_GL_CreateContext(window);
@@ -366,8 +383,10 @@ int main(int argc, char *argv[]){
    //Event Loop (Loop forever processing each event as fast as possible)
    SDL_Event windowEvent;
    bool done = false;
-   while (!done){
-      while (SDL_PollEvent(&windowEvent)){  //Process input events (e.g., mouse & keyboard)
+   while (!done)
+   {
+      while (SDL_PollEvent(&windowEvent))
+      {  //Process input events (e.g., mouse & keyboard)
          if (windowEvent.type == SDL_QUIT) done = true;
          //List of keycodes: https://wiki.libsdl.org/SDL_Keycode - You can catch many special keys
          //Scancode referes to a keyboard position, keycode referes to the letter (e.g., EU keyboards)
