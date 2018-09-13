@@ -23,7 +23,7 @@ string textureName = "brick.ppm";
 float g_pos_x = 0.0f;
 float g_pos_y = 0.0f;
 float g_size = 0.5f;
-float g_angle = 0;
+float g_angle = 0.0f;
 
 float vertices[] = {  //These values should be updated to match the square's state when it changes
 //  X     Y     R     G     B     U    V
@@ -114,6 +114,9 @@ unsigned char* loadImage(int& img_w, int& img_h){
 
 //TODO: Account for rotation by g_angle
 void updateVertices(){ 
+
+// pi is m_pi
+
    float vx = g_size;
    float vy =  g_size;
    vertices[0] = g_pos_x + vx;  //Top right x
@@ -182,11 +185,24 @@ void mouseDragged(float m_x, float m_y){
    
    if (g_bScale)
    {
-   		// Works for top edge and right edge (where you're going up and/or to the right)
-   		// For bottom and left edges it does the opposite
-   		g_size = g_size + .3 * (m_x - g_clicked_x);
+
+   		float orient_x = 1.0;
+   		float orient_y = 1.0;
+   		if (g_clicked_x < g_lastCenter_x)
+   			orient_x = -1.0;
+   		if (g_clicked_y < g_lastCenter_y)
+   			orient_y = -1.0;
+   		//(g_clicked_x - g_lastCenter_x) / (g_clicked_x - g_lastCenter_x);
+   		//(g_clicked_y - g_lastCenter_y) / (g_clicked_y - g_lastCenter_y);
+   		
+   		g_size = ((m_x - g_lastCenter_x) + (m_y - g_lastCenter_y));
+   		//g_size = g_size + ((m_x - (g_clicked_x - g_lastCenter_x)) +  (m_y - (g_clicked_y - g_lastCenter_y)));
+
+   		//printf("x:  %f\n", orient_x);
+   		//printf("y:  %f\n", orient_y);
+
    				   // The .3 acts as a bit of a delay factor so the square doesn't infinitely increase in size if the mouse doesn't move
-   		printf("%f\n", g_size);
+   		//printf("%f\n", g_size);
 
    		/*
    		if (g_clicked_x != m_x)
@@ -223,6 +239,13 @@ void mouseDragged(float m_x, float m_y){
    }
    
    if (g_bRotate){
+
+
+   	// find initial angle with mouse click that acts as a 'zero' which will be subtracted from the final dragged angle
+   	// so we'll have 1.  zero angle (center and to the right)
+   	// 				 2.  clicked angle
+   	//				 3.  dragged angle2
+
        //Compute the new angle, g_angle, based on the mouse positions
    }
    
