@@ -184,58 +184,15 @@ void mouseDragged(float m_x, float m_y){
    }
    
    if (g_bScale)
-   {
-
-   		float orient_x = 1.0;
-   		float orient_y = 1.0;
-   		if (g_clicked_x < g_lastCenter_x)
-   			orient_x = -1.0;
-   		if (g_clicked_y < g_lastCenter_y)
-   			orient_y = -1.0;
-   		//(g_clicked_x - g_lastCenter_x) / (g_clicked_x - g_lastCenter_x);
-   		//(g_clicked_y - g_lastCenter_y) / (g_clicked_y - g_lastCenter_y);
-   		
-   		g_size = ((m_x - g_lastCenter_x) + (m_y - g_lastCenter_y));
-   		//g_size = g_size + ((m_x - (g_clicked_x - g_lastCenter_x)) +  (m_y - (g_clicked_y - g_lastCenter_y)));
-
-   		//printf("x:  %f\n", orient_x);
-   		//printf("y:  %f\n", orient_y);
-
-   				   // The .3 acts as a bit of a delay factor so the square doesn't infinitely increase in size if the mouse doesn't move
-   		//printf("%f\n", g_size);
-
-   		/*
-   		if (g_clicked_x != m_x)
-   		{
-   			if (g_clicked_x < m_x)
-   			{
-   				// Assuming the user is clicking on the right edge of the square
-   				// The cursor is moving "forwards" (left to right)
-   				// Enlarge the square
-   				//printf("g_clicked_x:  %f\n", g_clicked_x);
-   				//printf("        m_x:  %f\n", m_x);
-   				//g_size += m_x - g_clicked_x;
-   				//printf("%f\n", screen_width / (m_x - g_clicked_x));
-   			}
-   			else if (g_clicked_x > m_x)
-   			{
-   				//printf("x backwards\n");
-   			}
-   		}
-   		else if (g_clicked_y != m_y)
-   		{
-   			if (g_clicked_y < m_y)
-   			{
-   				//printf("y up\n");
-   			}
-   			else if (g_clicked_y > m_y)
-   			{
-   				//printf("y down\n");
-   			}
-   		}*/
-   		// g_clicked_x   -   where the user last clicked
-   		// m_x           -   where the user is dragging the cursor
-   		//Compute the new size, g_size, based on the mouse positions
+   {   		
+   		float temp_x = abs(m_x - g_lastCenter_x);
+   			// take the absolute value to account for -x and/or -y clicks (don't mirror the square when this happens)
+   		float temp_y = abs(m_y - g_lastCenter_y);
+   		if (temp_x >= temp_y)
+   			g_size = temp_x;
+   		else
+   			g_size = temp_y;
+   		//g_size = ((m_x - g_lastCenter_x) + (m_y - g_lastCenter_y));
    }
    
    if (g_bRotate){
