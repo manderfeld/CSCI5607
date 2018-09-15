@@ -23,7 +23,8 @@ string textureName = "brick.ppm";
 float g_pos_x = 0.0f;
 float g_pos_y = 0.0f;
 float g_size = 0.5f;
-float g_angle = 0.0f;
+float g_angle = M_PI/4;
+//float g_angle = 0.0f;
 
 float vertices[] = {  //These values should be updated to match the square's state when it changes
 //  X     Y     R     G     B     U    V
@@ -48,11 +49,13 @@ void mouseClicked(float mx, float my);
 void mouseDragged(float mx, float my);
 
 bool g_bTranslate = false;
-bool g_bRotate = false;
+bool g_bRotate = true;
+// TODO: CHANGE THIS BACK TO FALSE
 bool g_bScale = false;
 
 //Inputs are output variables for returning the image width and heigth
-unsigned char* loadImage(int& img_w, int& img_h){
+unsigned char* loadImage(int& img_w, int& img_h)
+{
 
    //Open the texture image file
    ifstream ppmFile;
@@ -107,15 +110,11 @@ unsigned char* loadImage(int& img_w, int& img_h){
          pixelNum++;
       }
    }
-
-
    return img_data;
 }
 
 //TODO: Account for rotation by g_angle
 void updateVertices(){ 
-
-// pi is m_pi
 
    float vx = g_size;
    float vy =  g_size;
@@ -150,12 +149,16 @@ void mouseClicked(float m_x, float m_y){
    g_clicked_size = g_size;
    
    g_bTranslate = false;
-   g_bRotate = false;
+   g_bRotate = true;
+// TODO: CHANGE THIS BACK TO FALSE
    g_bScale = false;
    
    // x and y is the click position normalized to size of the square, with (-1,-1) at one corner (1,1) the other
    float x = m_x - g_pos_x;  
    float y = m_y - g_pos_y;
+
+// to normalize in the end I think you want to unscale, unrotate, and then untranslate
+
    x = x / g_size;
    y = y / g_size;
    
@@ -192,10 +195,13 @@ void mouseDragged(float m_x, float m_y){
    			g_size = temp_x;
    		else
    			g_size = temp_y;
-   		//g_size = ((m_x - g_lastCenter_x) + (m_y - g_lastCenter_y));
    }
    
    if (g_bRotate){
+
+   	//g_angle = M_PI/4;
+   	//printf("PI: %f", M_PI);
+
 
 
    	// find initial angle with mouse click that acts as a 'zero' which will be subtracted from the final dragged angle
