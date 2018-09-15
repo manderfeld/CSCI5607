@@ -116,9 +116,9 @@ unsigned char* loadImage(int& img_w, int& img_h)
 //TODO: Account for rotation by g_angle
 void updateVertices(){
 
-   float vx = cos(g_angle)*(g_pos_x-g_lastCenter_x)/2 + g_size;
+/*
+   float vx = cos(g_angle)*(rx)/2 + g_size;
    float vy = g_size;
-
 
    float tempx = g_pos_x + vx;
    float tempy = g_pos_y + vy;
@@ -127,23 +127,33 @@ void updateVertices(){
 
    //vertices[0] = tempx + cos(g_angle)*((tempx-g_lastCenter_x)/2);
    vertices[1] = tempy + sin(g_angle)*(tempy/2);
-//   vertices[0] = g_pos_x + vx;  //Top right x
-//   vertices[1] = g_pos_y + vy;  //Top right y
+*/
+
+	// Rotation, general formula
+	// x' = x*cos(θ) - y*sin(θ)
+	// y' = y*cos(θ) + x*sin(θ)
+
+   	float vx = g_pos_x + g_size;
+   	float vy =  g_pos_y + g_size;
+	vertices[0] = vx;  //Top right x
+	vertices[1] = vy;  //Top right y
    
-   vx = g_size;
-   vy = - g_size;
-   vertices[7] = g_pos_x + vx;  //Bottom right x
-   vertices[8] = g_pos_y + vy;  //Bottom right y
+   	vx = g_pos_x + g_size;
+   	vy = g_pos_y - g_size;
+	vertices[7] = vx;  //Bottom right x
+	vertices[8] = vy;  //Bottom right y
+
+	vx = g_pos_x - g_size;
+	vy = g_pos_y + g_size;
+	vertices[14] =  vx;  //Top left x
+	vertices[15] =  vy;  //Top left y
    
-   vx = - g_size;
-   vy = + g_size;
-   vertices[14] =  g_pos_x + vx;  //Top left x
-   vertices[15] =  g_pos_y + vy;  //Top left y
-   
-   vx = - g_size;
-   vy = - g_size;
-   vertices[21] =  g_pos_x + vx;  //Bottom left x
-   vertices[22] =  g_pos_y + vy;  //Bottom left y
+	vx = g_pos_x - g_size;
+	vy = g_pos_y - g_size;
+	vertices[21] =  vx;  //Bottom left x
+	vertices[22] =  vy;  //Bottom left y
+
+	//vertices[0] = vertices[0]*cos(g_angle) - vertices[1]*sin(g_angle);
 }
 
 //TODO: Choose between translate, rotate, and scale based on where the user clicked
