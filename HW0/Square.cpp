@@ -23,8 +23,8 @@ string textureName = "brick.ppm";
 float g_pos_x = 0.0f;
 float g_pos_y = 0.0f;
 float g_size = 0.5f;
-float g_angle = M_PI/4;
-//float g_angle = 0.0f;
+//float g_angle = M_PI/4;
+float g_angle = 0.0f;
 
 float vertices[] = {  //These values should be updated to match the square's state when it changes
 //  X     Y     R     G     B     U    V
@@ -49,8 +49,7 @@ void mouseClicked(float mx, float my);
 void mouseDragged(float mx, float my);
 
 bool g_bTranslate = false;
-bool g_bRotate = true;
-// TODO: CHANGE THIS BACK TO FALSE
+bool g_bRotate = false;
 bool g_bScale = false;
 
 //Inputs are output variables for returning the image width and heigth
@@ -118,35 +117,35 @@ unsigned char* loadImage(int& img_w, int& img_h)
 // y' = y*cos(θ) + x*sin(θ)
 float x_angle(float x, float y, float a)
 {
-	return x*cos(a) - y*sin(a);
+    return x*cos(a) - y*sin(a);
 }
 float y_angle(float x, float y, float a)
 {
-	return y*cos(a) + x*sin(a);
+    return y*cos(a) + x*sin(a);
 }
 
 //TODO: Account for rotation by g_angle
 void updateVertices(){
 
-   	float vx = g_size;
-   	float vy =  g_size;
-	vertices[0] = x_angle(vx, vy, g_angle) + g_pos_x;  //Top right x
-	vertices[1] = y_angle(vx, vy, g_angle) + g_pos_y;  //Top right y
+    float vx = g_size;
+    float vy =  g_size;
+    vertices[0] = x_angle(vx, vy, g_angle) + g_pos_x;  //Top right x
+    vertices[1] = y_angle(vx, vy, g_angle) + g_pos_y;  //Top right y
    
-   	vx = g_size;
-   	vy = - g_size;
-	vertices[7] = x_angle(vx, vy, g_angle) + g_pos_x;  //Bottom right x
-	vertices[8] = y_angle(vx, vy, g_angle) + g_pos_y;  //Bottom right y
+    vx = g_size;
+    vy = - g_size;
+    vertices[7] = x_angle(vx, vy, g_angle) + g_pos_x;  //Bottom right x
+    vertices[8] = y_angle(vx, vy, g_angle) + g_pos_y;  //Bottom right y
 
-	vx = - g_size;
-	vy = g_size;
-	vertices[14] =  x_angle(vx, vy, g_angle) + g_pos_x;  //Top left x
-	vertices[15] =  y_angle(vx, vy, g_angle) + g_pos_y;  //Top left y
+    vx = - g_size;
+    vy = g_size;
+    vertices[14] =  x_angle(vx, vy, g_angle) + g_pos_x;  //Top left x
+    vertices[15] =  y_angle(vx, vy, g_angle) + g_pos_y;  //Top left y
    
-	vx = - g_size;
-	vy = - g_size;
-	vertices[21] =  x_angle(vx, vy, g_angle) + g_pos_x;  //Bottom left x
-	vertices[22] =  y_angle(vx, vy, g_angle) + g_pos_y;  //Bottom left y
+    vx = - g_size;
+    vy = - g_size;
+    vertices[21] =  x_angle(vx, vy, g_angle) + g_pos_x;  //Bottom left x
+    vertices[22] =  y_angle(vx, vy, g_angle) + g_pos_y;  //Bottom left y
 }
 
 //TODO: Choose between translate, rotate, and scale based on where the user clicked
@@ -161,29 +160,45 @@ void mouseClicked(float m_x, float m_y){
    g_clicked_size = g_size;
    
    g_bTranslate = false;
-   g_bRotate = true;
-// TODO: CHANGE THIS BACK TO FALSE
+   g_bRotate = false;
    g_bScale = false;
    
    // x and y is the click position normalized to size of the square, with (-1,-1) at one corner (1,1) the other
-   float x = m_x - g_pos_x;  
-   float y = m_y - g_pos_y;
+   float vx = m_x - g_pos_x;   // Undo translation
+   float vy = m_y - g_pos_y;
 
-// to normalize in the end I think you want to unscale, unrotate, and then untranslate
+   vx = vx / g_size;           // Undo scaling
+   vy = vy / g_size;
 
-   x = x / g_size;
-   y = y / g_size;
+   float x = x_angle(vx, vy, -g_angle); // Undo rotation
+   float y = y_angle(vx, vy, -g_angle);
    
    printf("Normalized click coord: %f, %f\n",x,y);
    
-   if (x > 1.05 || y > 1.05 || x < -1.05 || y < -1.05) return; //TODO: Test your understanding: Why 1.05 and not 1?
+   if (x > 1.05 || y > 1.05 || x < -1.05 || y < -1.05)
+   {
+    return;
+   } //TODO: Test your understanding: Why 1.05 and not 1?
    if (x < .9 && x > -.9 && y < .9 && y > -.9)
    { //TODO: Test your understanding: What happens if you change .9 to .8?
-      g_bTranslate = true;
+    g_bTranslate = true;
+   }
+   //else if ( (x >= .9 && x < 1) && (x<= -0.9 && x > -1.0) && (y >= 0.9 && y < 1) && (y <= -0.9 && y > -1.0) )
+   
+   else if(
+        (x >= 0.9 && x < 1.05 && y >= -0.9 && y < 0.97) || // right edge
+        (x > -0.97 && x < 0.97 && y >= 0.9 && y < 1.05) || // top edge
+        (x > -1.05 && x <= -0.9 && y >= -0.9 && y < 0.97) || // left edge
+        (x > -0.97 && x < 0.97 && y <= -0.9 && y > -1.05) // bottom edge
+        )
+   {
+    g_bScale = true;
    }
    else
    {
-      g_bScale = true;
+    g_bRotate = true;
+    //g_bScale = true;
+    //g_bRotate = true;
    }
 }
 
@@ -199,26 +214,21 @@ void mouseDragged(float m_x, float m_y){
    }
    
    if (g_bScale)
-   {   		
-   		float temp_x = abs(m_x - g_lastCenter_x);
-   			// take the absolute value to account for -x and/or -y clicks (don't mirror the square when this happens)
-   		float temp_y = abs(m_y - g_lastCenter_y);
-   		if (temp_x >= temp_y)
-   			g_size = temp_x;
-   		else
-   			g_size = temp_y;
+   {        
+        float temp_x = abs(m_x - g_lastCenter_x);
+            // take the absolute value to account for -x and/or -y clicks (don't mirror the square when this happens)
+        float temp_y = abs(m_y - g_lastCenter_y);
+        if (temp_x >= temp_y)
+            g_size = temp_x;
+        else
+            g_size = temp_y;
    }
    
    if (g_bRotate){
-
-   	//g_angle = M_PI/4;
-
-   	// find initial angle with mouse click that acts as a 'zero' which will be subtracted from the final dragged angle
-   	// so we'll have 1.  zero angle (center and to the right)
-   	// 				 2.  clicked angle
-   	//				 3.  dragged angle2
-
-       //Compute the new angle, g_angle, based on the mouse positions
+    //printf("ROTATE\n");
+    //float angle_clicked = atan(g_lastCenter_y / g_lastCenter_x);
+    float angle_dragged = atan(m_y / m_x);
+    g_angle = angle_dragged; 
    }
    
    updateVertices();
@@ -261,26 +271,26 @@ int main(int argc, char *argv[]){
    
    //Ask SDL to get a fairly recent version of OpenGL (3.2 or greater)
    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-	
-	//Create a window (offsetx, offsety, width, height, flags)
-	SDL_Window* window = SDL_CreateWindow("CSCI5607 - mande174 HW0", 100, 100, screen_width, screen_height, SDL_WINDOW_OPENGL);
-	
-	//The above window cannot be resized which makes some code slightly easier.
-	//Below show how to make a full screen window or allow resizing
-	//SDL_Window* window = SDL_CreateWindow("My OpenGL Program", 0, 0, screen_width, screen_height, SDL_WINDOW_FULLSCREEN|SDL_WINDOW_OPENGL);
-	//SDL_Window* window = SDL_CreateWindow("My OpenGL Program", 100, 100, screen_width, screen_height, SDL_WINDOW_RESIZABLE|SDL_WINDOW_OPENGL);
-	//SDL_Window* window = SDL_CreateWindow("My OpenGL Program",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,0,0,SDL_WINDOW_FULLSCREEN_DESKTOP|SDL_WINDOW_OPENGL); //Boarderless window "fake" full screen
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+    
+    //Create a window (offsetx, offsety, width, height, flags)
+    SDL_Window* window = SDL_CreateWindow("CSCI5607 - mande174 HW0", 100, 100, screen_width, screen_height, SDL_WINDOW_OPENGL);
+    
+    //The above window cannot be resized which makes some code slightly easier.
+    //Below show how to make a full screen window or allow resizing
+    //SDL_Window* window = SDL_CreateWindow("My OpenGL Program", 0, 0, screen_width, screen_height, SDL_WINDOW_FULLSCREEN|SDL_WINDOW_OPENGL);
+    //SDL_Window* window = SDL_CreateWindow("My OpenGL Program", 100, 100, screen_width, screen_height, SDL_WINDOW_RESIZABLE|SDL_WINDOW_OPENGL);
+    //SDL_Window* window = SDL_CreateWindow("My OpenGL Program",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,0,0,SDL_WINDOW_FULLSCREEN_DESKTOP|SDL_WINDOW_OPENGL); //Boarderless window "fake" full screen
 
    float aspect = screen_width/(float)screen_height; //aspect ratio (needs to be updated if the window is resized)
-	
-	updateVertices(); //set initial position of the square to match its state
-	
-	//Create a context to draw in
-	SDL_GLContext context = SDL_GL_CreateContext(window);
-	
-	//OpenGL functions using glad library
+    
+    updateVertices(); //set initial position of the square to match its state
+    
+    //Create a context to draw in
+    SDL_GLContext context = SDL_GL_CreateContext(window);
+    
+    //OpenGL functions using glad library
    if (gladLoadGLLoader(SDL_GL_GetProcAddress)){
       printf("OpenGL loaded\n");
       printf("Vendor:   %s\n", glGetString(GL_VENDOR));
@@ -307,7 +317,7 @@ int main(int argc, char *argv[]){
    //TODO: Test your understanding: Try GL_LINEAR instead of GL_NEAREST on the 4x4 test image. What is happening?
    /*
         For the GL_TEXTURE_MAG_FILTER parameter setting GL_NEAREST will make blocks of color
-       													GL_LINEAR  will make a gradient of the colors
+                                                        GL_LINEAR  will make a gradient of the colors
    */
 
 
