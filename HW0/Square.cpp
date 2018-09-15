@@ -23,8 +23,8 @@ string textureName = "brick.ppm";
 float g_pos_x = 0.0f;
 float g_pos_y = 0.0f;
 float g_size = 0.5f;
-float g_angle = M_PI/4;
-//float g_angle = 0.0f;
+//float g_angle = M_PI/4;
+float g_angle = 0.0f;
 
 float vertices[] = {  //These values should be updated to match the square's state when it changes
 //  X     Y     R     G     B     U    V
@@ -117,9 +117,18 @@ unsigned char* loadImage(int& img_w, int& img_h)
 void updateVertices(){ 
 
    float vx = g_size;
-   float vy =  g_size;
-   vertices[0] = g_pos_x + vx;  //Top right x
-   vertices[1] = g_pos_y + vy;  //Top right y
+   float vy = g_size;
+
+   //vx = g_pos_x + vx;
+   //vy = g_pos_y + vy;
+   float tempx = g_pos_x + vx;
+   float tempy = g_pos_y + vy;
+
+   vertices[0] = tempx + cos(g_angle)*((tempx-g_lastCenter_x)/2);
+   vertices[1] = tempy + sin(g_angle)*(tempy/2);
+
+//   vertices[0] = g_pos_x + vx;  //Top right x
+//   vertices[1] = g_pos_y + vy;  //Top right y
    
    vx = g_size;
    vy = - g_size;
@@ -200,9 +209,6 @@ void mouseDragged(float m_x, float m_y){
    if (g_bRotate){
 
    	//g_angle = M_PI/4;
-   	//printf("PI: %f", M_PI);
-
-
 
    	// find initial angle with mouse click that acts as a 'zero' which will be subtracted from the final dragged angle
    	// so we'll have 1.  zero angle (center and to the right)
