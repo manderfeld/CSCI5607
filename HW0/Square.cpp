@@ -183,8 +183,6 @@ void mouseClicked(float m_x, float m_y){
    { //TODO: Test your understanding: What happens if you change .9 to .8?
     g_bTranslate = true;
    }
-   //else if ( (x >= .9 && x < 1) && (x<= -0.9 && x > -1.0) && (y >= 0.9 && y < 1) && (y <= -0.9 && y > -1.0) )
-   
    else if(
         (x >= 0.9 && x < 1.05 && y >= -0.9 && y < 0.97) || // right edge
         (x > -0.97 && x < 0.97 && y >= 0.9 && y < 1.05) || // top edge
@@ -197,8 +195,6 @@ void mouseClicked(float m_x, float m_y){
    else
    {
     g_bRotate = true;
-    //g_bScale = true;
-    //g_bRotate = true;
    }
 }
 
@@ -225,10 +221,14 @@ void mouseDragged(float m_x, float m_y){
    }
    
    if (g_bRotate){
-    //printf("ROTATE\n");
-    //float angle_clicked = atan(g_lastCenter_y / g_lastCenter_x);
-    float angle_dragged = atan(m_y / m_x);
-    g_angle = angle_dragged; 
+
+        float angle_clicked = atan(g_clicked_x / g_clicked_y);
+        float angle_dragged = atan((m_y) / (m_x));
+        printf("   C:  %f\n", angle_clicked);
+        printf("   D:  %f\n", angle_dragged);
+        g_angle = angle_dragged - angle_clicked;
+        printf("D - C:  %f\n", g_angle);
+    //g_angle = 0.0; 
    }
    
    updateVertices();
