@@ -103,9 +103,9 @@ unsigned char* loadImage(int& img_w, int& img_h)
       float fi = i/(float)img_h;
       for (int j = 0; j < img_w; j++){
          float fj = j/(float)img_w;
-         img_data[i*img_w*4 + j*4] = red_data[pixelNum];        //Red
-         img_data[i*img_w*4 + j*4 + 1] = green_data[pixelNum];  //Green
-         img_data[i*img_w*4 + j*4 + 2] = blue_data[pixelNum];   //Blue
+         img_data[i*img_w*4 + j*4] = red_data[pixelNum] + 50;        //Red
+         img_data[i*img_w*4 + j*4 + 1] = green_data[pixelNum] + 50;  //Green
+         img_data[i*img_w*4 + j*4 + 2] = blue_data[pixelNum] + 50;   //Blue
          img_data[i*img_w*4 + j*4 + 3] = 255;  //Alpha
          pixelNum++;
       }
@@ -114,19 +114,19 @@ unsigned char* loadImage(int& img_w, int& img_h)
 }
 
 //TODO: Account for rotation by g_angle
-void updateVertices(){ 
+void updateVertices(){
 
-   float vx = g_size;
+   float vx = cos(g_angle)*(g_pos_x-g_lastCenter_x)/2 + g_size;
    float vy = g_size;
 
-   //vx = g_pos_x + vx;
-   //vy = g_pos_y + vy;
+
    float tempx = g_pos_x + vx;
    float tempy = g_pos_y + vy;
 
-   vertices[0] = tempx + cos(g_angle)*((tempx-g_lastCenter_x)/2);
-   vertices[1] = tempy + sin(g_angle)*(tempy/2);
+   vertices[0] = tempx;
 
+   //vertices[0] = tempx + cos(g_angle)*((tempx-g_lastCenter_x)/2);
+   vertices[1] = tempy + sin(g_angle)*(tempy/2);
 //   vertices[0] = g_pos_x + vx;  //Top right x
 //   vertices[1] = g_pos_y + vy;  //Top right y
    
