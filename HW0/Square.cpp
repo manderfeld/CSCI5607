@@ -23,8 +23,8 @@ string textureName = "brick.ppm";
 float g_pos_x = 0.0f;
 float g_pos_y = 0.0f;
 float g_size = 0.5f;
-//float g_angle = M_PI/4;
-float g_angle = 0.0f;
+float g_angle = M_PI/4;
+//float g_angle = 0.0f;
 
 float vertices[] = {  //These values should be updated to match the square's state when it changes
 //  X     Y     R     G     B     U    V
@@ -113,47 +113,40 @@ unsigned char* loadImage(int& img_w, int& img_h)
    return img_data;
 }
 
+// Rotation, general formula
+// x' = x*cos(θ) - y*sin(θ)
+// y' = y*cos(θ) + x*sin(θ)
+float x_angle(float x, float y, float a)
+{
+	return x*cos(a) - y*sin(a);
+}
+float y_angle(float x, float y, float a)
+{
+	return y*cos(a) + x*sin(a);
+}
+
 //TODO: Account for rotation by g_angle
 void updateVertices(){
 
-/*
-   float vx = cos(g_angle)*(rx)/2 + g_size;
-   float vy = g_size;
-
-   float tempx = g_pos_x + vx;
-   float tempy = g_pos_y + vy;
-
-   vertices[0] = tempx;
-
-   //vertices[0] = tempx + cos(g_angle)*((tempx-g_lastCenter_x)/2);
-   vertices[1] = tempy + sin(g_angle)*(tempy/2);
-*/
-
-	// Rotation, general formula
-	// x' = x*cos(θ) - y*sin(θ)
-	// y' = y*cos(θ) + x*sin(θ)
-
-   	float vx = g_pos_x + g_size;
-   	float vy =  g_pos_y + g_size;
-	vertices[0] = vx;  //Top right x
-	vertices[1] = vy;  //Top right y
+   	float vx = g_size;
+   	float vy =  g_size;
+	vertices[0] = x_angle(vx, vy, g_angle) + g_pos_x;  //Top right x
+	vertices[1] = y_angle(vx, vy, g_angle) + g_pos_y;  //Top right y
    
-   	vx = g_pos_x + g_size;
-   	vy = g_pos_y - g_size;
-	vertices[7] = vx;  //Bottom right x
-	vertices[8] = vy;  //Bottom right y
+   	vx = g_size;
+   	vy = - g_size;
+	vertices[7] = x_angle(vx, vy, g_angle) + g_pos_x;  //Bottom right x
+	vertices[8] = y_angle(vx, vy, g_angle) + g_pos_y;  //Bottom right y
 
-	vx = g_pos_x - g_size;
-	vy = g_pos_y + g_size;
-	vertices[14] =  vx;  //Top left x
-	vertices[15] =  vy;  //Top left y
+	vx = - g_size;
+	vy = g_size;
+	vertices[14] =  x_angle(vx, vy, g_angle) + g_pos_x;  //Top left x
+	vertices[15] =  y_angle(vx, vy, g_angle) + g_pos_y;  //Top left y
    
-	vx = g_pos_x - g_size;
-	vy = g_pos_y - g_size;
-	vertices[21] =  vx;  //Bottom left x
-	vertices[22] =  vy;  //Bottom left y
-
-	//vertices[0] = vertices[0]*cos(g_angle) - vertices[1]*sin(g_angle);
+	vx = - g_size;
+	vy = - g_size;
+	vertices[21] =  x_angle(vx, vy, g_angle) + g_pos_x;  //Bottom left x
+	vertices[22] =  y_angle(vx, vy, g_angle) + g_pos_y;  //Bottom left y
 }
 
 //TODO: Choose between translate, rotate, and scale based on where the user clicked
