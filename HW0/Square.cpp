@@ -226,34 +226,38 @@ void mouseDragged(float m_x, float m_y){
 // cah (use arccos and adjacent (m_x - g_pos_x) and hypotensure to find angle)
 // using y and x position
 
-    printf("x: %f  ,  %f\n", g_pos_x, m_x);
-    printf("y: %f  ,  %f\n", g_pos_y, m_y);
+    float adjc = g_clicked_x - g_pos_x;
+    float oppc = g_clicked_y - g_pos_y;
+    float hypc = sqrt( adjc*adjc + oppc*oppc);
+    float ag_clicked_angle = acos(adjc/hypc);
+    printf("  A:  %f\n", (ag_clicked_angle)*180/M_PI);
 
-        g_clicked_angle = atan(g_clicked_y / g_clicked_x);
-        //float angle_clicked = 0.0;
-        float angle_dragged = atan((m_y) / (m_x));
-        float temp = g_angle;
-        if (m_x < 0 && m_y > 0)
+    float adj = m_x - g_pos_x;
+    float opp = m_y - g_pos_y;
+    float hyp = sqrt( adj*adj + opp*opp );
+
+    float temp = acos(adj/hyp);
+    printf("  B: %f\n", (temp)*180/M_PI);
+
+    if(temp == ag_clicked_angle)
+    {
+        g_angle = g_angle;
+        g_clicked_angle = g_angle;
+    }
+    else
+    {
+        if ( (adj > 0 && opp > 0) || (adj < 0 && opp > 0))
         {
-            angle_dragged = angle_dragged + M_PI/2;
-            temp = angle_dragged + g_clicked_angle;
+            g_angle = temp - ag_clicked_angle + g_clicked_angle;
         }
         else
         {
-            temp = angle_dragged - g_clicked_angle;
+            g_angle = -acos(adj/hyp) - ag_clicked_angle + g_clicked_angle;
         }
-       // printf("   X:  %f\n", m_x);
-       // printf("   Y:  %f\n", m_y);
-        printf("   C:  %f\n", (g_clicked_angle)*180/M_PI);
-        printf("   D:  %f\n", (angle_dragged)*180/M_PI);
-        //float temp = angle_dragged - g_clicked_angle;
-        printf("TEMP:  %f\n", (temp)*180/M_PI);
-        //printf("D - C:  %f\n", (g_angle)*180/M_PI);
-        printf("TEMP:  %f\n", (temp)*180/M_PI);
-        g_angle = temp;
+        //g_clicked_angle = g_angle;
+    }
 
-
-    //g_angle = M_PI; 
+    printf("B-A: %f\n", (g_angle)*180/M_PI);
    }
    
    updateVertices();
