@@ -223,15 +223,18 @@ void mouseDragged(float m_x, float m_y){
    if (g_bRotate){
 
 
+// cah (use arccos and adjacent (m_x - g_pos_x) and hypotensure to find angle)
+// using y and x position
+
         float angle_clicked = atan(g_clicked_y / g_clicked_x);
         //float angle_clicked = 0.0;
         float angle_dragged = atan((m_y) / (m_x));
         printf("   X:  %f\n", m_x);
         printf("   Y:  %f\n", m_y);
-        //printf("   C:  %f\n", (angle_clicked)*180/M_PI);
-        //printf("   D:  %f\n", (angle_dragged)*180/M_PI);
+        printf("   C:  %f\n", (angle_clicked)*180/M_PI);
+        printf("   D:  %f\n", (angle_dragged)*180/M_PI);
         g_angle = angle_dragged - angle_clicked;
-        //printf("D - C:  %f\n", (g_angle)*180/M_PI);
+        printf("D - C:  %f\n", (g_angle)*180/M_PI);
         
 
 
@@ -290,6 +293,10 @@ int main(int argc, char *argv[]){
     //SDL_Window* window = SDL_CreateWindow("My OpenGL Program", 100, 100, screen_width, screen_height, SDL_WINDOW_RESIZABLE|SDL_WINDOW_OPENGL);
     //SDL_Window* window = SDL_CreateWindow("My OpenGL Program",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,0,0,SDL_WINDOW_FULLSCREEN_DESKTOP|SDL_WINDOW_OPENGL); //Boarderless window "fake" full screen
 
+    //float temp = screen_height;
+    //if (screen_width < screen_height)
+       // temp = screen_width;
+    // keep aspect ratio the same even if window changes
    float aspect = screen_width/(float)screen_height; //aspect ratio (needs to be updated if the window is resized)
     
     updateVertices(); //set initial position of the square to match its state
@@ -419,6 +426,12 @@ int main(int argc, char *argv[]){
          done = true; //Exit event loop
          if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_f) //If "f" is pressed
          fullscreen = !fullscreen;
+         if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_d)
+         {
+            g_size = g_size+0.1;
+// When you press d, after refreshing the square (ie clicking)
+// it will get bigger
+         }
          SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN : 0); //Set to full screen 
       }
       
