@@ -59,7 +59,8 @@ unsigned char* loadImage(int& img_w, int& img_h)
    //Open the texture image file
    ifstream ppmFile;
    ppmFile.open(textureName.c_str());
-   if (!ppmFile){
+   if (!ppmFile)
+   {
       printf("ERROR: Texture file '%s' not found.\n",textureName.c_str());
       exit(1);
    }
@@ -67,7 +68,8 @@ unsigned char* loadImage(int& img_w, int& img_h)
    //Check that this is an ASCII PPM (first line is P3)
    string PPM_style;
    ppmFile >> PPM_style; //Read the first line of the header    
-   if (PPM_style != "P3") {
+   if (PPM_style != "P3")
+   {
       printf("ERROR: PPM Type number is %s. Not an ASCII (P3) PPM file!\n",PPM_style.c_str());
       exit(1);
    }
@@ -79,7 +81,8 @@ unsigned char* loadImage(int& img_w, int& img_h)
    //Check that the 3rd line is 255 (ie., this is an 8 bit/pixel PPM)
    int maximum;
    ppmFile >> maximum;
-   if (maximum != 255) {
+   if (maximum != 255)
+   {
       printf("ERROR: Maximum size is (%d) not 255.\n",maximum);
       exit(1);
    }
@@ -97,19 +100,21 @@ unsigned char* loadImage(int& img_w, int& img_h)
       pixelNum++;
    }
 
-   pixelNum = 0;
-   for (int i = 0; i < img_h; i++){
+    pixelNum = 0;
+    for (int i = 0; i < img_h; i++)
+    {
       float fi = i/(float)img_h;
-      for (int j = 0; j < img_w; j++){
+      for (int j = 0; j < img_w; j++)
+      {
          float fj = j/(float)img_w;
-         img_data[i*img_w*4 + j*4] = red_data[pixelNum] + 20;        //Red
-         img_data[i*img_w*4 + j*4 + 1] = green_data[pixelNum] + 20;  //Green
-         img_data[i*img_w*4 + j*4 + 2] = blue_data[pixelNum] + 20;   //Blue
+         img_data[i*img_w*4 + j*4] = red_data[pixelNum] + 50;        //Red
+         img_data[i*img_w*4 + j*4 + 1] = green_data[pixelNum] + 50;  //Green
+         img_data[i*img_w*4 + j*4 + 2] = blue_data[pixelNum] + 50;   //Blue
          img_data[i*img_w*4 + j*4 + 3] = 255;  //Alpha
          pixelNum++;
       }
-   }
-   return img_data;
+    }
+    return img_data;
 }
 
 // Rotation, general formula
@@ -150,67 +155,69 @@ void updateVertices(){
 
 //TODO: Choose between translate, rotate, and scale based on where the user clicked
 // I've implemented the logic for translate and scale, but you need to add rotate
-void mouseClicked(float m_x, float m_y){   
-   printf("Clicked at %f, %f\n",m_x,m_y);
-   g_clicked_x = m_x;
-   g_clicked_y = m_y;
-   g_lastCenter_x = g_pos_x;
-   g_lastCenter_y = g_pos_y;
-   g_clicked_angle = g_angle;
-   g_clicked_size = g_size;
-   
-   g_bTranslate = false;
-   g_bRotate = false;
-   g_bScale = false;
-   
-   // x and y is the click position normalized to size of the square, with (-1,-1) at one corner (1,1) the other
-   float vx = m_x - g_pos_x;   // Undo translation
-   float vy = m_y - g_pos_y;
+void mouseClicked(float m_x, float m_y)
+{   
+    printf("Clicked at %f, %f\n",m_x,m_y);
+    g_clicked_x = m_x;
+    g_clicked_y = m_y;
+    g_lastCenter_x = g_pos_x;
+    g_lastCenter_y = g_pos_y;
+    g_clicked_angle = g_angle;
+    g_clicked_size = g_size;
 
-   vx = vx / g_size;           // Undo scaling
-   vy = vy / g_size;
+    g_bTranslate = false;
+    g_bRotate = false;
+    g_bScale = false;
 
-   float x = x_angle(vx, vy, -g_angle); // Undo rotation
-   float y = y_angle(vx, vy, -g_angle);
-   
-   printf("Normalized click coord: %f, %f\n",x,y);
-   
-   if (x > 1.05 || y > 1.05 || x < -1.05 || y < -1.05)
-   {
-    return;
-   } //TODO: Test your understanding: Why 1.05 and not 1?
-   if (x < .9 && x > -.9 && y < .9 && y > -.9)
-   { //TODO: Test your understanding: What happens if you change .9 to .8?
-    g_bTranslate = true;
-   }
-   else if(
+    // x and y is the click position normalized to size of the square, with (-1,-1) at one corner (1,1) the other
+    float vx = m_x - g_pos_x;   // Undo translation
+    float vy = m_y - g_pos_y;
+
+    vx = vx / g_size;           // Undo scaling
+    vy = vy / g_size;
+
+    float x = x_angle(vx, vy, -g_angle); // Undo rotation
+    float y = y_angle(vx, vy, -g_angle);
+
+    printf("Normalized click coord: %f, %f\n",x,y);
+
+    if (x > 1.05 || y > 1.05 || x < -1.05 || y < -1.05)
+    {
+        return;
+    } //TODO: Test your understanding: Why 1.05 and not 1?
+    if (x < .9 && x > -.9 && y < .9 && y > -.9)
+    { //TODO: Test your understanding: What happens if you change .9 to .8?
+        g_bTranslate = true;
+    }
+    else if(
         (x >= 0.9 && x < 1.05 && y >= -0.9 && y < 0.97) || // right edge
         (x > -0.97 && x < 0.97 && y >= 0.9 && y < 1.05) || // top edge
         (x > -1.05 && x <= -0.9 && y >= -0.9 && y < 0.97) || // left edge
         (x > -0.97 && x < 0.97 && y <= -0.9 && y > -1.05) // bottom edge
         )
-   {
-    g_bScale = true;
-   }
-   else
-   {
-    g_bRotate = true;
-   }
+    {
+        g_bScale = true;
+    }
+    else
+    {
+        g_bRotate = true;
+    }
 }
 
 //TODO: Update the position, rotation, or scale based on the mouse movement
 //  I've implemented the logic for position, you need to do scaling and angle
 //TODO: Notice how smooth draging the square is (e.g., there are no "jumps" when you click), 
 //      try to make your implementation of rotate and scale as smooth
-void mouseDragged(float m_x, float m_y){   
+void mouseDragged(float m_x, float m_y)
+{   
    
-   if (g_bTranslate){
+    if (g_bTranslate){
       g_pos_x = m_x-g_clicked_x+g_lastCenter_x;
       g_pos_y = m_y-g_clicked_y+g_lastCenter_y;
-   }
+    }
    
-   if (g_bScale)
-   {        
+    if (g_bScale)
+    {        
         float temp_x = abs(m_x - g_lastCenter_x);
             // take the absolute value to account for -x and/or -y clicks (don't mirror the square when this happens)
         float temp_y = abs(m_y - g_lastCenter_y);
@@ -218,49 +225,40 @@ void mouseDragged(float m_x, float m_y){
             g_size = temp_x;
         else
             g_size = temp_y;
-   }
-   
-   if (g_bRotate){
-
-
-// cah (use arccos and adjacent (m_x - g_pos_x) and hypotensure to find angle)
-// using y and x position
-
-    float adjc = g_clicked_x - g_pos_x;
-    float oppc = g_clicked_y - g_pos_y;
-    float hypc = sqrt( adjc*adjc + oppc*oppc);
-    float ag_clicked_angle = acos(adjc/hypc);
-    printf("  A:  %f\n", (ag_clicked_angle)*180/M_PI);
-
-    float adj = m_x - g_pos_x;
-    float opp = m_y - g_pos_y;
-    float hyp = sqrt( adj*adj + opp*opp );
-
-    float temp = acos(adj/hyp);
-    printf("  B: %f\n", (temp)*180/M_PI);
-
-    if(temp == ag_clicked_angle)
-    {
-        g_angle = g_angle;
-        g_clicked_angle = g_angle;
     }
-    else
+   
+    if (g_bRotate)
     {
-        if ( (adj > 0 && opp > 0) || (adj < 0 && opp > 0))
+        // then modify the final answer depending on where we are on the square)
+
+        // Clicked values
+        float adjc = g_clicked_x - g_pos_x;
+        float oppc = g_clicked_y - g_pos_y;
+        float hypc = sqrt( adjc*adjc + oppc*oppc);
+
+        // Current mouse position values
+        float adj = m_x - g_pos_x;
+        float opp = m_y - g_pos_y;
+        float hyp = sqrt( adj*adj + opp*opp );
+
+        if(acos(adj/hyp) == acos(adjc/hypc))
         {
-            g_angle = temp - ag_clicked_angle + g_clicked_angle;
+            g_angle = g_angle;
+            g_clicked_angle = g_angle;
         }
         else
         {
-            g_angle = -acos(adj/hyp) - ag_clicked_angle + g_clicked_angle;
+            if ( (adj > 0 && opp > 0) || (adj < 0 && opp > 0))
+            {
+                g_angle = acos(adj/hyp) - acos(adjc/hypc) + g_clicked_angle;
+            }
+            else
+            {
+                g_angle = -acos(adj/hyp) - acos(adjc/hypc) + g_clicked_angle;
+            }
         }
-        //g_clicked_angle = g_angle;
     }
-
-    printf("B-A: %f\n", (g_angle)*180/M_PI);
-   }
-   
-   updateVertices();
+    updateVertices();
 }
 
 /////////////////////////////
