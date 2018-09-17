@@ -102,9 +102,9 @@ unsigned char* loadImage(int& img_w, int& img_h)
       float fi = i/(float)img_h;
       for (int j = 0; j < img_w; j++){
          float fj = j/(float)img_w;
-         img_data[i*img_w*4 + j*4] = red_data[pixelNum] + 50;        //Red
-         img_data[i*img_w*4 + j*4 + 1] = green_data[pixelNum] + 50;  //Green
-         img_data[i*img_w*4 + j*4 + 2] = blue_data[pixelNum] + 50;   //Blue
+         img_data[i*img_w*4 + j*4] = red_data[pixelNum] + 20;        //Red
+         img_data[i*img_w*4 + j*4 + 1] = green_data[pixelNum] + 20;  //Green
+         img_data[i*img_w*4 + j*4 + 2] = blue_data[pixelNum] + 20;   //Blue
          img_data[i*img_w*4 + j*4 + 3] = 255;  //Alpha
          pixelNum++;
       }
@@ -222,13 +222,20 @@ void mouseDragged(float m_x, float m_y){
    
    if (g_bRotate){
 
-        float angle_clicked = atan(g_clicked_x / g_clicked_y);
+
+        float angle_clicked = atan(g_clicked_y / g_clicked_x);
+        //float angle_clicked = 0.0;
         float angle_dragged = atan((m_y) / (m_x));
-        printf("   C:  %f\n", angle_clicked);
-        printf("   D:  %f\n", angle_dragged);
+        printf("   X:  %f\n", m_x);
+        printf("   Y:  %f\n", m_y);
+        //printf("   C:  %f\n", (angle_clicked)*180/M_PI);
+        //printf("   D:  %f\n", (angle_dragged)*180/M_PI);
         g_angle = angle_dragged - angle_clicked;
-        printf("D - C:  %f\n", g_angle);
-    //g_angle = 0.0; 
+        //printf("D - C:  %f\n", (g_angle)*180/M_PI);
+        
+
+
+    //g_angle = M_PI; 
    }
    
    updateVertices();
