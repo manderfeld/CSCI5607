@@ -124,9 +124,30 @@ Image* Image::Crop(int x, int y, int w, int h)
 }
 
 
+// ExtractChannel
+// **  NOTE THE FOLLOWING ASSUMPTIONS  **
+// Assumptions: channels indexed starting at 0 for R, G, B
+// 				this EXCLUDES the alpha channel (otherwise results wouldn't be visible)
 void Image::ExtractChannel(int channel)
 {
-	/* WORK HERE */
+	int x,y;
+	Pixel q;
+	q.SetClamp(0,0,0);
+	if (channel == 0) 		// R
+		q.SetClamp(1,0,0);
+	else if (channel == 1)  // B
+		q.SetClamp(0,1,0);
+	else if (channel == 2)	// G
+		q.SetClamp(0,0,1);
+	for (x = 0 ; x < Width() ; x++)
+	{
+		for (y = 0 ; y < Height() ; y++)
+		{
+			Pixel p = GetPixel(x, y);
+			Pixel extracted_p = p * q;
+			GetPixel(x,y) = extracted_p;
+		}
+	}
 }
 
 
