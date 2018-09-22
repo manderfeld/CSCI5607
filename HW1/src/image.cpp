@@ -87,7 +87,18 @@ void Image::Write(char* fname){
 
 void Image::AddNoise (double factor)
 {
-	/* WORK HERE */
+	int x,y;
+	for (x = 0 ; x < Width() ; x++)
+	{
+		for (y = 0 ; y < Height() ; y++)
+		{
+			Pixel p = GetPixel(x, y);
+			Pixel noisy_p = PixelRandom();
+			double r = (double)rand() / (RAND_MAX); // random double 0 to 1
+			if (r <= factor)
+				GetPixel(x,y) = noisy_p;
+		}
+	}
 }
 
 void Image::Brighten (double factor)
