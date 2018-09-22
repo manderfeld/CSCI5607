@@ -120,11 +120,26 @@ void Image::ChangeSaturation(double factor)
 Image* Image::Crop(int x, int y, int w, int h)
 {
 	/* WORK HERE */
-	return NULL;
+	Image* result = new Image(w,h);
+	int x_i = 0;
+	int y_i = 0;
+	
+	for (x_i = 0; x_i < w; x_i++)
+	{
+		for (y_i = 0; y_i < y; y_i++)
+		{
+			result->GetPixel(x_i, y_i) = GetPixel(x+x_i, y+y_i);
+		}
+	}
+
+	// TODO: Error checking
+
+	return result;
 }
 
 
 // ExtractChannel
+// TODO: add a part to the -help text about these assumptions
 // **  NOTE THE FOLLOWING ASSUMPTIONS  **
 // Assumptions: channels indexed starting at 0 for R, G, B
 // 				this EXCLUDES the alpha channel (otherwise results wouldn't be visible)
