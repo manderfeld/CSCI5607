@@ -137,7 +137,7 @@ Image* Image::Crop(int x, int y, int w, int h)
 	
 	for (x_i = 0; x_i < w; x_i++)
 	{
-		for (y_i = 0; y_i < y; y_i++)
+		for (y_i = 0; y_i < h; y_i++)
 		{
 			result->GetPixel(x_i, y_i) = GetPixel(x+x_i, y+y_i);
 		}
