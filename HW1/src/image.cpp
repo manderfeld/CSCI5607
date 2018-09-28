@@ -93,10 +93,12 @@ void Image::AddNoise (double factor)
 		for (y = 0 ; y < Height() ; y++)
 		{
 			Pixel p = GetPixel(x, y);
-			Pixel noisy_p = PixelRandom();
+			//float r = (rand() % 2000) / 2000.0;
 			double r = (double)rand() / (RAND_MAX); // random double 0 to 1
 			if (r <= factor)
-				GetPixel(x,y) = noisy_p;
+			{
+				GetPixel(x,y) = PixelRandom();
+			}
 		}
 	}
 }
