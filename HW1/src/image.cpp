@@ -92,13 +92,14 @@ void Image::AddNoise (double factor)
 	{
 		for (y = 0 ; y < Height() ; y++)
 		{
-			Pixel p = GetPixel(x, y);
-			//float r = (rand() % 2000) / 2000.0;
 			double r = (double)rand() / (RAND_MAX); // random double 0 to 1
 			if (r <= factor)
 			{
-				GetPixel(x,y) = PixelRandom();
+				Pixel p = PixelRandom();
+				p.a = 255;
+				GetPixel(x,y) = p;
 			}
+
 		}
 	}
 }

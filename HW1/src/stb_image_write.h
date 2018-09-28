@@ -302,6 +302,7 @@ static void stbiw__write3(stbi__write_context *s, unsigned char a, unsigned char
 
 static void stbiw__write_pixel(stbi__write_context *s, int rgb_dir, int comp, int write_alpha, int expand_mono, unsigned char *d)
 {
+   // Background is magenta (if alpha is 0, we will see a magenta pixel)
    unsigned char bg[3] = { 255, 0, 255}, px[3];
    int k;
 
