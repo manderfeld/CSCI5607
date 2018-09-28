@@ -88,6 +88,7 @@ void Image::Write(char* fname){
 void Image::AddNoise (double factor)
 {
 	int x,y;
+	Pixel p;
 	for (x = 0 ; x < Width() ; x++)
 	{
 		for (y = 0 ; y < Height() ; y++)
@@ -95,7 +96,7 @@ void Image::AddNoise (double factor)
 			double r = (double)rand() / (RAND_MAX); // random double 0 to 1
 			if (r <= factor)
 			{
-				Pixel p = PixelRandom();
+				p = PixelRandom();
 				p.a = 255;
 				GetPixel(x,y) = p;
 			}
@@ -118,15 +119,16 @@ void Image::Brighten (double factor)
 	}
 }
 
-float Image::GetLuminance()
+float Image::AvgLuminance()
 {
 	float lum = 0;
 	int x, y;
+	Pixel p;
 	for (x = 0; x < Width(); x++)
 	{
 		for (y = 0; y < Height(); y++)
 		{
-			Pixel p = GetPixel(x,y);
+			p = GetPixel(x,y);
 			lum += p.Luminance();
 		}
 	}
@@ -138,19 +140,19 @@ float Image::GetLuminance()
 
 void Image::ChangeContrast (double factor)
 {
-	float avglum = GetLuminance();
-	/*
+	float avglum = AvgLuminance();
+
 	int x, y;
+	Pixel p;
 	for (x = 0; x < Width(); x++)
 	{
 		for (y = 0; y < Height(); y++)
 		{
-			Pixel p = GetPixel(x,y);
+			p = GetPixel(x,y);
 			float lum = p.Luminance();
 			printf("%f\n", lum);
 		}
 	}
-	*/
 }
 
 
@@ -162,7 +164,6 @@ void Image::ChangeSaturation(double factor)
 
 Image* Image::Crop(int x, int y, int w, int h)
 {
-	/* WORK HERE */
 	Image* result = new Image(w,h);
 	int x_i = 0;
 	int y_i = 0;
@@ -197,12 +198,13 @@ void Image::ExtractChannel(int channel)
 		q.SetClamp(0,1,0);
 	else if (channel == 2)	// G
 		q.SetClamp(0,0,1);
+	Pixel p, extracted_p;
 	for (x = 0 ; x < Width() ; x++)
 	{
 		for (y = 0 ; y < Height() ; y++)
 		{
-			Pixel p = GetPixel(x, y);
-			Pixel extracted_p = p * q;
+			p = GetPixel(x, y);
+			extracted_p = p * q;
 			GetPixel(x,y) = extracted_p;
 		}
 	}

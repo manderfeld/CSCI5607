@@ -89,7 +89,7 @@ public:
     // Brightens the image by multiplying each pixel component by the factor.
     void Brighten (double factor);
 
-    float GetLuminance();
+    float AvgLuminance();
 
     /**
      * Changes the contrast of an image by interpolating between the image
