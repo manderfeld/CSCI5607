@@ -119,23 +119,25 @@ void Image::Brighten (double factor)
 
 float Image::GetLuminance()
 {
-	float sumlum = 0;
+	float lum = 0;
 	int x, y;
 	for (x = 0; x < Width(); x++)
 	{
 		for (y = 0; y < Height(); y++)
 		{
 			Pixel p = GetPixel(x,y);
-			float lum = p.Luminance();
-			printf("%f\n", lum);
+			lum += p.Luminance();
 		}
 	}
-	return sumlum;
+	// lum is the sum of all of the values of luminance right now
+	// divide by Width() * Height() to get the average
+	lum = lum / (Width() * Height());
+	return lum;
 }
 
 void Image::ChangeContrast (double factor)
 {
-	GetLuminance();
+	float avglum = GetLuminance();
 	/*
 	int x, y;
 	for (x = 0; x < Width(); x++)
