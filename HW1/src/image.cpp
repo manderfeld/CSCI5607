@@ -243,7 +243,16 @@ void Image::ExtractChannel(int channel)
 
 void Image::Quantize (int nbits)
 {
-	/* WORK HERE */
+	int x, y;
+	Pixel p;
+	for (x = 0; x < Width(); x++)
+	{
+		for (y = 0; y < Height(); y++)
+		{
+			p = GetPixel(x,y);
+			GetPixel(x,y) = PixelQuant(p, nbits);
+		}
+	}
 }
 
 void Image::RandomDither (int nbits)
