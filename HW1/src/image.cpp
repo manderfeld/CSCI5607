@@ -168,7 +168,27 @@ void Image::ChangeContrast (double factor)
 
 void Image::ChangeSaturation(double factor)
 {
-	/* WORK HERE */
+	// Three ways to get a gray scale image: lightness, average, and luminosity
+	// Implementing luminosity – accounts for differences in how the brightness of colors is pereived
+	int x, y;
+	Pixel p, gray, scaled_p;
+	float lum;
+	for (x = 0; x < Width(); x++)
+	{
+		for (y = 0; y < Height(); y++)
+		{
+			p = GetPixel(x,y);
+			// grayscale pixel for linear interpolation
+			lum = p.Luminance();
+			gray = Pixel(lum, lum, lum);
+			gray.a = 255;
+				// set alpha channel to 255, avoid magenta pixels
+			scaled_p = PixelLerp(p, gray, (1-factor));
+				// linear interpolation between the current pixel and grayscale pixel by given factor
+				// do (1-factor) so that factor of 0 will result in a grayscale image
+			GetPixel(x,y) = scaled_p;
+		}
+	}
 }
 
 
