@@ -149,7 +149,6 @@ void Image::ChangeContrast (double factor)
 	Pixel p;
 	Pixel scaled_p;
 	float lum;
-	printf("avg lum: %f\n", avglum);
 	for (x = 0; x < Width(); x++)
 	{
 		for (y = 0; y < Height(); y++)
@@ -157,7 +156,10 @@ void Image::ChangeContrast (double factor)
 			p = GetPixel(x,y);
 			lum = p.Luminance();
 			scaled_p = PixelLerp(p, avgGray, (1-factor));
+				// linear interpolation between the current pixel and average pixel by given factor
+				// do (1-factor) so that factor of 0 will result in a gray image
 			scaled_p.a = 255;
+				// set alpha channel to 255, avoid magenta pixels
 			GetPixel(x,y) = scaled_p;
 		}
 	}
