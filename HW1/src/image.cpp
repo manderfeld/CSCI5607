@@ -114,6 +114,7 @@ void Image::Brighten (double factor)
 		{
 			Pixel p = GetPixel(x, y);
 			Pixel scaled_p = p*factor;
+			scaled_p.a = 255;
 			GetPixel(x,y) = scaled_p;
 		}
 	}
@@ -140,17 +141,24 @@ float Image::AvgLuminance()
 
 void Image::ChangeContrast (double factor)
 {
+	// average gray image for linear interpolation (lerp)
 	float avglum = AvgLuminance();
+	Pixel avgGray = Pixel(avglum, avglum, avglum);
 
 	int x, y;
 	Pixel p;
+	Pixel scaled_p;
+	float lum;
+	printf("avg lum: %f\n", avglum);
 	for (x = 0; x < Width(); x++)
 	{
 		for (y = 0; y < Height(); y++)
 		{
 			p = GetPixel(x,y);
-			float lum = p.Luminance();
-			printf("%f\n", lum);
+			lum = p.Luminance();
+			scaled_p = PixelLerp(p, avgGray, (1-factor));
+			scaled_p.a = 255;
+			GetPixel(x,y) = scaled_p;
 		}
 	}
 }
