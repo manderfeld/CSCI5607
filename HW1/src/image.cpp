@@ -311,9 +311,9 @@ void Image::Blur(int n)
 		for (int j = 0; j < n; j++)
 		{
 			filter[i][j] = frc * exp(-(pow(n/2-i,2)+pow(n/2-j,2))/(2*sigma));
-			printf("%f - ", filter[i][j]);
+			//printf("%f - ", filter[i][j]);
 		}
-		printf("\n");
+		//printf("\n");
 	}
 
 	// 2. apply the filter
@@ -375,7 +375,7 @@ void Image::Blur(int n)
 
 void Image::Sharpen(int n)
 {
-	/* WORK HERE */
+	this->Blur(n);
 }
 
 void Image::EdgeDetect()
