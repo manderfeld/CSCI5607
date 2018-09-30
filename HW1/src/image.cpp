@@ -300,13 +300,7 @@ void Image::FloydSteinbergDither(int nbits)
 
 void Image::Blur(int n)
 {
-	Image* temp = new Image(Width(), Height());
-		// temp image, image after filtering
-		// avoid changing image while applying filters
-
-	// test with 3x3 matrix, see if it matches the one in class
-
-	// create the gaussian filter (n by n)
+	// 1. create the gaussian filter (n by n)
 	float sigma = 0.5; // for now set sigma (std deviation) to 0.5, play around with this value
 	sigma = 2*pow(sigma,2); // 2*sigma^2 is used twice in the 2D gaussian equation
 	float frc = 1/(2*M_PI*sigma); // the first half of the 2D gaussian equation, doesn't change based on and y
@@ -321,6 +315,62 @@ void Image::Blur(int n)
 		}
 		printf("\n");
 	}
+
+	// 2. apply the filter
+	int x,y, n_x, n_y;
+	float r,g,b;
+	Pixel p, tp;
+	Image* temp = new Image(Width(), Height());
+		// temp image, image after filtering
+		// avoid changing image while applying filters
+	int radius;		// calculate radius of the filter, later when we're apply the filter we'll know where to start
+	if (n%2 == 0)	// if even just do N/2, if odd do N/2 + 1
+	{
+		radius = n/2;
+	}
+	else
+	{
+		radius = n/2+1;
+	}
+
+	for (x = 0; x < Width(); x++)
+	{
+		for (y = 0; y < Height(); y++)
+		{
+			r = 0.0;
+			g = 0.0;
+			b = 0.0;
+			// then go through each element of the filter
+			for (int i = 0; i < n; i++)
+			{
+				for (int j = 0; j < n; j++)
+				{
+					n_x = ((i+x-radius)+Width())%Width();
+					n_y = ((j+y-radius)+Height())%Height();
+					//printf("(%d, %d)\n", n_x, n_y);
+					p = GetPixel(n_x,n_y); // add then mod by width and height ensures wrap around since negative mod-ing not working
+					r += p.r * filter[i][j];
+					g += p.g * filter[i][j];
+					b += p.b * filter[i][j];
+				}
+			}
+			tp.r = fmin(fmax(r,0),255);
+			tp.g = fmin(fmax(g,0),255);
+			tp.b = fmin(fmax(b,0),255);
+			temp->SetPixel(x,y,tp);
+		}
+	}
+
+	// replace image with temp
+	for (x = 0; x < Width(); x++)
+	{
+		for (y = 0; y < Height(); y++)
+		{
+			tp = temp->GetPixel(x,y);
+			GetPixel(x,y) = tp;
+		}
+	}
+
 }
 
 void Image::Sharpen(int n)
