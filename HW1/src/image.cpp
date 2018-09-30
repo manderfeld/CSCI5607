@@ -300,7 +300,27 @@ void Image::FloydSteinbergDither(int nbits)
 
 void Image::Blur(int n)
 {
-	/* WORK HERE */
+	Image* temp = new Image(Width(), Height());
+		// temp image, image after filtering
+		// avoid changing image while applying filters
+
+	// test with 3x3 matrix, see if it matches the one in class
+
+	// create the gaussian filter (n by n)
+	float sigma = 0.5; // for now set sigma (std deviation) to 0.5, play around with this value
+	sigma = 2*pow(sigma,2); // 2*sigma^2 is used twice in the 2D gaussian equation
+	float frc = 1/(2*M_PI*sigma); // the first half of the 2D gaussian equation, doesn't change based on and y
+
+	float filter[n][n];
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			filter[i][j] = frc * exp(-(pow(n/2-i,2)+pow(n/2-j,2))/(2*sigma));
+			printf("%f - ", filter[i][j]);
+		}
+		printf("\n");
+	}
 }
 
 void Image::Sharpen(int n)
