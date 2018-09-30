@@ -112,3 +112,17 @@ Pixel PixelQuant( const Pixel &p, int nbits)
 	ret.SetClamp(new_r*mult , new_g*mult , new_b*mult );
 	return ret;
 }
+
+Pixel PixelRandQuant( const Pixel &p, int nbits)
+{
+    int shift = 8-nbits;
+    float mult = 255/float(255 >> shift);
+    int new_r, new_g, new_b;
+    new_r = ((p.r + ComponentRandom()) >> shift);
+    new_g = ((p.g + ComponentRandom()) >> shift);
+    new_b = ((p.b + ComponentRandom()) >> shift);
+
+    Pixel ret;
+    ret.SetClamp(new_r*mult , new_g*mult , new_b*mult );
+    return ret;
+}

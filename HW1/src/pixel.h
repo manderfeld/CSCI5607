@@ -72,4 +72,6 @@ Pixel PixelLerp (const Pixel& p, const Pixel& q, double t);
 
 Pixel PixelQuant(const Pixel &p, int nbits);
 
+Pixel PixelRandQuant(const Pixel &p, int nbits);
+
 #endif

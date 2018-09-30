@@ -257,7 +257,18 @@ void Image::Quantize (int nbits)
 
 void Image::RandomDither (int nbits)
 {
-	/* WORK HERE */
+	int x, y;
+	Pixel p, pq;
+	int r, g, b;
+	//double r;
+	for (x = 0; x < Width(); x++)
+	{
+		for (y = 0; y < Height(); y++)
+		{
+			p = GetPixel(x,y);
+			GetPixel(x,y) = PixelRandQuant(p, nbits);
+		}
+	}
 }
 
 
