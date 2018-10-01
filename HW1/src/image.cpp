@@ -295,7 +295,66 @@ const double
 
 void Image::FloydSteinbergDither(int nbits)
 {
-	/* WORK HERE */
+	int x, y;
+	Pixel p, tp, a, b, c, d;
+	int r_qe, g_qe, b_qe; // quantization error for r,g,b
+
+	for (x = 0; x < Width(); x++)
+	{
+		for (y = 0; y < Height(); y++)
+		{
+			p = GetPixel(x,y);
+			tp = p;
+			// Testing with 16 bits right now
+			tp.r = (p.r > 128) ? 255 : 0;
+			tp.g = (p.g > 128) ? 255 : 0;
+			tp.b = (p.b > 128) ? 255 : 0;
+			//GetPixel(x,y) = SetClamp(r, g, b, 255.0);
+			r_qe = p.r - tp.r;
+			g_qe = p.g - tp.g;
+			b_qe = p.b = tp.b;
+			printf("( %d , %d )\n", x, y);
+			GetPixel(x,y) = tp;
+			// Diffuse the error and check bounds
+			
+			if (x < Width() - 1)
+			{
+				this->GetPixel(x+1, y).SetClamp(
+					this->GetPixel(x+1, y).r + r_qe * 7.0/16.0,
+					this->GetPixel(x+1, y).g + g_qe * 7.0/16.0,
+					this->GetPixel(x+1, y).b + b_qe * 7.0/16.0
+					);
+			}
+			printf("end of big ifs 1 / 4 \n");
+			if ((x > 0) && (y < Height() - 1))
+			{
+				this->GetPixel(x-1, y+1).SetClamp(
+					this->GetPixel(x-1, y+1).r + r_qe * 3.0/16.0,
+					this->GetPixel(x-1, y+1).g + g_qe * 3.0/16.0,
+					this->GetPixel(x-1, y+1).b + b_qe * 3.0/16.0
+					);
+			}
+			printf("end of big ifs 2 / 4 \n");
+			if (y < Height() - 1)
+			{
+				this->GetPixel(x, y+1).SetClamp(
+					this->GetPixel(x, y+1).r + r_qe * 5.0/16.0,
+					this->GetPixel(x, y+1).g + g_qe * 5.0/16.0,
+					this->GetPixel(x, y+1).b + b_qe * 5.0/16.0
+					);
+			}
+			printf("end of big ifs 3 / 4 \n");
+			if ((x < Width() - 1) && (y < Height() - 1) )
+			{
+				this->GetPixel(x+1, y+1).SetClamp(
+					this->GetPixel(x+1, y+1).r + r_qe * 1.0/16.0,
+					this->GetPixel(x+1, y+1).g + g_qe * 1.0/16.0,
+					this->GetPixel(x+1, y+1).b + b_qe * 1.0/16.0
+					);
+			}
+			printf("end of big ifs 4 / 4 \n");
+		}
+	}
 }
 
 void Image::Blur(int n)
@@ -387,7 +446,6 @@ void Image::Sharpen(int n)
 												  // set interpolation factor to -0.5 (arbitrary, just has to be negative since 'inverse' interpolation)
 		}
 	}
-
 }
 
 void Image::EdgeDetect()
