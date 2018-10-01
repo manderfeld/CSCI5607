@@ -311,9 +311,7 @@ void Image::Blur(int n)
 		for (int j = 0; j < n; j++)
 		{
 			filter[i][j] = frc * exp(-(pow(n/2-i,2)+pow(n/2-j,2))/(2*sigma));
-			//printf("%f - ", filter[i][j]);
 		}
-		//printf("\n");
 	}
 
 	// 2. apply the filter
@@ -347,7 +345,6 @@ void Image::Blur(int n)
 				{
 					n_x = ((i+x-radius)+Width())%Width();
 					n_y = ((j+y-radius)+Height())%Height();
-					//printf("(%d, %d)\n", n_x, n_y);
 					p = GetPixel(n_x,n_y); // add then mod by width and height ensures wrap around since negative mod-ing not working
 					r += p.r * filter[i][j];
 					g += p.g * filter[i][j];
@@ -370,12 +367,27 @@ void Image::Blur(int n)
 			GetPixel(x,y) = tp;
 		}
 	}
-
 }
 
 void Image::Sharpen(int n)
 {
-	this->Blur(n);
+	// at the moment, the code from sharpen will be almost identical to blur
+	float sigma=0.5;sigma=2*pow(sigma,2);float frc=1/(2*M_PI*sigma);float filter[n][n];for(int i=0;i<n;i++){for(int j=0;j<n;j++){filter[i][j] = frc*exp(-(pow(n/2-i,2)+pow(n/2-j,2))/(2*sigma));}}int x,y,n_x,n_y;float r,g,b;Pixel p,tp;Image* temp=new Image(Width(),Height());int radius;if (n%2 == 0){radius = n/2;}else{radius = n/2+1;}for (x=0;x<Width();x++){for(y=0;y< Height();y++){r=0.0;g=0.0;b=0.0;for(int i=0;i<n;i++){for(int j=0;j<n;j++){n_x=((i+x-radius)+Width())%Width();n_y=((j+y-radius)+Height())%Height();p=GetPixel(n_x,n_y);r+=p.r*filter[i][j];g+=p.g*filter[i][j];b+=p.b*filter[i][j];}}tp.r=fmin(fmax(r,0),255);tp.g=fmin(fmax(g,0),255);tp.b=fmin(fmax(b,0),255);temp->SetPixel(x,y,tp);}}
+	// the following line is the blur code with all white spaces removed
+
+	// replace image with temp
+	for (x = 0; x < Width(); x++)
+	{
+		for (y = 0; y < Height(); y++)
+		{
+			// temp has the blurry pixel
+			p = GetPixel(x,y);
+			tp = temp->GetPixel(x,y);
+			GetPixel(x,y) = PixelLerp(p,tp,-0.5); // interpolation from the normal image and blurry image
+												  // set interpolation factor to -0.5 (arbitrary, just has to be negative since 'inverse' interpolation)
+		}
+	}
+
 }
 
 void Image::EdgeDetect()
