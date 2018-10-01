@@ -443,9 +443,72 @@ void Image::Sharpen(int n)
 	}
 }
 
+static int edFilter[3][3] =
+{
+	{-1, -1, -1},
+	{-1, 8, -1},
+	{-1, -1, -1}
+};
+
+
 void Image::EdgeDetect()
 {
-	/* WORK HERE */
+	int x, y, i, j;
+	int n_x, n_y;
+	float r, g, b;
+	Pixel p, bp, tp; // pixels from: current image, blurred image, and temp (edge detected) image
+	Image* blur = new Image(Width(), Height());
+	Image* temp = new Image(Width(), Height());
+	for (x = 0; x < Width(); x++)
+	{
+		for (y = 0; y < Height(); y++)
+		{
+			p = GetPixel(x,y);
+			blur->SetPixel(x,y,p);
+		}
+	}
+	// blur the image (get rid of big details), getting ready for edge detection
+	blur->Blur(5);
+
+	for (x = 0; x < Width(); x++)
+	{
+		for (y = 0; y < Height(); y++)
+		{
+			//bp = blur->GetPixel(x,y);
+			r = 0.0;
+			g = 0.0;
+			b = 0.0;
+			// then go through each element of the filter
+			for (i = 0; i < 3; i++) // limited by the size (3x3) of the filter
+			{
+				for (j = 0; j < 3; j++)
+				{
+					n_x = ((i+x-2)+Width())%Width();
+					n_y = ((j+y-2)+Height())%Height();
+					bp = blur->GetPixel(n_x,n_y);
+					r += bp.r * edFilter[i][j];
+					g += bp.g * edFilter[i][j];
+					b += bp.b * edFilter[i][j];
+				}
+			}
+			tp.r = fmin(fmax(r,0),255);
+			tp.g = fmin(fmax(g,0),255);
+			tp.b = fmin(fmax(b,0),255);
+			temp->SetPixel(x,y,tp);
+		}
+	}
+
+	// replace image with temp
+	for (x = 0; x < Width(); x++)
+	{
+		for (y = 0; y < Height(); y++)
+		{
+			// temp has the blurry pixel
+			p = GetPixel(x,y);
+			tp = temp->GetPixel(x,y);
+			GetPixel(x,y) = tp;
+		}
+	}
 }
 
 Image* Image::Scale(double sx, double sy)
