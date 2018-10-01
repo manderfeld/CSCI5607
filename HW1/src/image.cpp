@@ -305,15 +305,14 @@ void Image::FloydSteinbergDither(int nbits)
 		{
 			p = GetPixel(x,y);
 			tp = p;
-			// Testing with 16 bits right now
-			tp.r = (p.r > 128) ? 255 : 0;
-			tp.g = (p.g > 128) ? 255 : 0;
-			tp.b = (p.b > 128) ? 255 : 0;
-			//GetPixel(x,y) = SetClamp(r, g, b, 255.0);
+
+			tp.r = (p.r > pow(2,(nbits/2)-1)) ? 255 : 0;
+			tp.g = (p.g > pow(2,(nbits/2)-1)) ? 255 : 0;
+			tp.b = (p.b > pow(2,(nbits/2)-1)) ? 255 : 0;
+			
 			r_qe = p.r - tp.r;
 			g_qe = p.g - tp.g;
 			b_qe = p.b = tp.b;
-			printf("( %d , %d )\n", x, y);
 			GetPixel(x,y) = tp;
 			// Diffuse the error and check bounds
 			
@@ -325,7 +324,6 @@ void Image::FloydSteinbergDither(int nbits)
 					this->GetPixel(x+1, y).b + b_qe * 7.0/16.0
 					);
 			}
-			printf("end of big ifs 1 / 4 \n");
 			if ((x > 0) && (y < Height() - 1))
 			{
 				this->GetPixel(x-1, y+1).SetClamp(
@@ -334,7 +332,6 @@ void Image::FloydSteinbergDither(int nbits)
 					this->GetPixel(x-1, y+1).b + b_qe * 3.0/16.0
 					);
 			}
-			printf("end of big ifs 2 / 4 \n");
 			if (y < Height() - 1)
 			{
 				this->GetPixel(x, y+1).SetClamp(
@@ -343,7 +340,6 @@ void Image::FloydSteinbergDither(int nbits)
 					this->GetPixel(x, y+1).b + b_qe * 5.0/16.0
 					);
 			}
-			printf("end of big ifs 3 / 4 \n");
 			if ((x < Width() - 1) && (y < Height() - 1) )
 			{
 				this->GetPixel(x+1, y+1).SetClamp(
@@ -352,7 +348,6 @@ void Image::FloydSteinbergDither(int nbits)
 					this->GetPixel(x+1, y+1).b + b_qe * 1.0/16.0
 					);
 			}
-			printf("end of big ifs 4 / 4 \n");
 		}
 	}
 }
