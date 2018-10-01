@@ -296,7 +296,8 @@ const double
 void Image::FloydSteinbergDither(int nbits)
 {
 	int x, y;
-	Pixel p, tp, a, b, c, d;
+	Pixel p, tp;
+	int red, green, blue;
 	int r_qe, g_qe, b_qe; // quantization error for r,g,b
 
 	for (x = 0; x < Width(); x++)
@@ -306,51 +307,78 @@ void Image::FloydSteinbergDither(int nbits)
 			p = GetPixel(x,y);
 			tp = p;
 
-			tp.r = (p.r > pow(2,(nbits/2)-1)) ? 255 : 0;
-			tp.g = (p.g > pow(2,(nbits/2)-1)) ? 255 : 0;
-			tp.b = (p.b > pow(2,(nbits/2)-1)) ? 255 : 0;
+			int var = pow(2,9-nbits)-1;
+			/* round rgb values to nearest threshhold */
+			if (p.r%(var+1) > (var+1)/2)
+			{
+				red = (p.r-(p.r%var)+var);
+			}
+			else
+			{
+				red = (p.r-(p.r%var));
+			}
+			if (p.g%(var+1) > (var+1)/2)
+			{
+				green = (p.g-(p.g%var)+var);
+			}
+			else
+			{
+				green = (p.g-(p.g%var));
+			}
+			if (p.b%(var+1) > (var+1)/2)
+			{
+				blue = (p.b-(p.b%var)+var);
+			}
+			else
+			{
+				blue = (p.b-(p.b%var));
+			}
+
+			tp.SetClamp(red,green,blue);
+			GetPixel(x,y) = tp;
 			
 			r_qe = p.r - tp.r;
 			g_qe = p.g - tp.g;
-			b_qe = p.b = tp.b;
-			GetPixel(x,y) = tp;
+			b_qe = p.b - tp.b;
 			// Diffuse the error and check bounds
 			
 			if (x < Width() - 1)
 			{
 				this->GetPixel(x+1, y).SetClamp(
-					this->GetPixel(x+1, y).r + r_qe * 7.0/16.0,
-					this->GetPixel(x+1, y).g + g_qe * 7.0/16.0,
-					this->GetPixel(x+1, y).b + b_qe * 7.0/16.0
+					this->GetPixel(x+1, y).r + r_qe * ALPHA,
+					this->GetPixel(x+1, y).g + g_qe * ALPHA,
+					this->GetPixel(x+1, y).b + b_qe * ALPHA
 					);
 			}
 			if ((x > 0) && (y < Height() - 1))
 			{
 				this->GetPixel(x-1, y+1).SetClamp(
-					this->GetPixel(x-1, y+1).r + r_qe * 3.0/16.0,
-					this->GetPixel(x-1, y+1).g + g_qe * 3.0/16.0,
-					this->GetPixel(x-1, y+1).b + b_qe * 3.0/16.0
+					this->GetPixel(x-1, y+1).r + r_qe * BETA,
+					this->GetPixel(x-1, y+1).g + g_qe * BETA,
+					this->GetPixel(x-1, y+1).b + b_qe * BETA
 					);
 			}
 			if (y < Height() - 1)
 			{
 				this->GetPixel(x, y+1).SetClamp(
-					this->GetPixel(x, y+1).r + r_qe * 5.0/16.0,
-					this->GetPixel(x, y+1).g + g_qe * 5.0/16.0,
-					this->GetPixel(x, y+1).b + b_qe * 5.0/16.0
+					this->GetPixel(x, y+1).r + r_qe * GAMMA,
+					this->GetPixel(x, y+1).g + g_qe * GAMMA,
+					this->GetPixel(x, y+1).b + b_qe * GAMMA
 					);
 			}
 			if ((x < Width() - 1) && (y < Height() - 1) )
 			{
 				this->GetPixel(x+1, y+1).SetClamp(
-					this->GetPixel(x+1, y+1).r + r_qe * 1.0/16.0,
-					this->GetPixel(x+1, y+1).g + g_qe * 1.0/16.0,
-					this->GetPixel(x+1, y+1).b + b_qe * 1.0/16.0
+					this->GetPixel(x+1, y+1).r + r_qe * DELTA,
+					this->GetPixel(x+1, y+1).g + g_qe * DELTA,
+					this->GetPixel(x+1, y+1).b + b_qe * DELTA
 					);
 			}
 		}
 	}
 }
+
+
 
 void Image::Blur(int n)
 {
