@@ -560,10 +560,44 @@ Image* Image::Scale(double sx, double sy)
 	return ret;
 }
 
-Image* Image::Rotate(double angle)
+Image *Image::Rotate(double angle)
 {
-	/* WORK HERE */
-	return NULL;
+	angle = -angle;
+	angle = angle * M_PI/180.0; // convert from degrees to radians
+
+	// get size of new image
+	int width_n  = Height() * abs(sin(angle)) + Width() * abs(sin(M_PI / 2 - angle));
+	int height_n = Height() * abs(cos(angle)) + Width() * abs(cos(M_PI / 2 - angle));
+
+	int x_diff = (width_n - Width()) / 2;
+	int y_diff = (height_n - Height()) / 2;
+
+	Image* ret = new Image(width_n, height_n);
+	int half_w = Width() / 2;
+	int half_h = Height() / 2;
+
+	float u, v;
+	for (int x = 0; x < width_n; x++)
+	{
+		for (int y = 0; y < height_n; y++)
+		{
+			int x_n = x - x_diff;
+			int y_n = y - y_diff;
+			u = (x_n - half_w) * cos(angle) - (y_n - half_h) * sin(angle) + half_w;
+			v = (x_n - half_w) * sin(angle) + (y_n - half_h) * cos(angle) + half_h;
+
+			if (!ValidCoord(u,v))
+			{
+				// do nothing, before this red was to test
+				//ret->GetPixel(x,y) = Pixel(255,0,0);
+			}
+			else
+			{
+				ret->GetPixel(x,y) = Sample(u,v);
+			}
+		}
+	}
+  	return ret;
 }
 
 void Image::Fun()
@@ -585,7 +619,7 @@ Pixel Image::Sample (double u, double v){
     // take two floats and make them ints
 
 	Pixel p; // pixel
-	int x, y, r, g, b;
+	int x, y;
 
 	// for bilinear interpolation
 	Pixel p1, p2, p3, p4;
@@ -603,6 +637,7 @@ Pixel Image::Sample (double u, double v){
     }
     else if (sampling_method == 1) // 2D bilinear interpolation
     {
+    	int r, g, b;
  		x_l = (int)u%Width();
  		y_l = (int)v%Height();
     	x_h = ceil(u);
@@ -635,6 +670,76 @@ Pixel Image::Sample (double u, double v){
     }
     else if (sampling_method == 2) // gaussian
     {
+    	/*
+    	int n = 5;
+		// 1. create the gaussian filter (n by n)
+		float sigma = 2; // for now set sigma (std deviation) to 0.5, play around with this value
+		sigma = 2*pow(sigma,2); // 2*sigma^2 is used twice in the 2D gaussian equation
+		float frc = 1/(M_PI*sigma); // the first half of the 2D gaussian equation, doesn't change based on and y
+		float filter[n][n];
+		for (int i = 0; i < n; i++)
+		{
+			for (int j = 0; j < n; j++)
+			{
+				filter[i][j] = frc * exp(-(pow(n/2-i,2)+pow(n/2-j,2))/(sigma));
+			}
+		}
+		// 2. apply the filter
+		int n_x, n_y;
+		float r,g,b;
+		Pixel p, tp;
+		Image* temp = new Image(Width(), Height());
+			// temp image, image after filtering
+			// avoid changing image while applying filters
+		int radius;		// calculate radius of the filter, later when we're apply the filter we'll know where to start
+		if (n%2 == 0)	// if even just do N/2, if odd do N/2 + 1
+		{
+			radius = n/2;
+		}
+		else
+		{
+			radius = n/2+1;
+		}*/
+/*
+		for (x = 0; x < Width(); x++)
+		{
+			for (y = 0; y < Height(); y++)
+			{
+				r = 0.0;
+				g = 0.0;
+				b = 0.0;
+				// then go through each element of the filter
+				for (int i = 0; i < n; i++)
+				{
+					for (int j = 0; j < n; j++)
+					{
+						n_x = ((i+x-radius)+Width())%Width();
+						n_y = ((j+y-radius)+Height())%Height();
+						p = GetPixel(n_x,n_y); // add then mod by width and height ensures wrap around since negative mod-ing not working
+						r += p.r * filter[i][j];
+						g += p.g * filter[i][j];
+						b += p.b * filter[i][j];
+					}
+				}
+				tp.r = fmin(fmax(r,0),255);
+				tp.g = fmin(fmax(g,0),255);
+				tp.b = fmin(fmax(b,0),255);
+				temp->SetPixel(x,y,tp);
+			}
+		}
+		*/
+/*
+		// replace image with temp
+		for (x = 0; x < Width(); x++)
+		{
+			for (y = 0; y < Height(); y++)
+			{
+				tp = temp->GetPixel(x,y);
+				GetPixel(x,y) = tp;
+			}
+		}
+		return GetPixel(x,y);*/
+		return Pixel(0,0,0);
 
     }
 
