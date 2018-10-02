@@ -383,16 +383,16 @@ void Image::FloydSteinbergDither(int nbits)
 void Image::Blur(int n)
 {
 	// 1. create the gaussian filter (n by n)
-	float sigma = 0.5; // for now set sigma (std deviation) to 0.5, play around with this value
+	float sigma = 2; // for now set sigma (std deviation) to 0.5, play around with this value
 	sigma = 2*pow(sigma,2); // 2*sigma^2 is used twice in the 2D gaussian equation
-	float frc = 1/(2*M_PI*sigma); // the first half of the 2D gaussian equation, doesn't change based on and y
+	float frc = 1/(M_PI*sigma); // the first half of the 2D gaussian equation, doesn't change based on and y
 
 	float filter[n][n];
 	for (int i = 0; i < n; i++)
 	{
 		for (int j = 0; j < n; j++)
 		{
-			filter[i][j] = frc * exp(-(pow(n/2-i,2)+pow(n/2-j,2))/(2*sigma));
+			filter[i][j] = frc * exp(-(pow(n/2-i,2)+pow(n/2-j,2))/(sigma));
 		}
 	}
 
@@ -454,7 +454,7 @@ void Image::Blur(int n)
 void Image::Sharpen(int n)
 {
 	// at the moment, the code from sharpen will be almost identical to blur
-	float sigma=0.5;sigma=2*pow(sigma,2);float frc=1/(2*M_PI*sigma);float filter[n][n];for(int i=0;i<n;i++){for(int j=0;j<n;j++){filter[i][j] = frc*exp(-(pow(n/2-i,2)+pow(n/2-j,2))/(2*sigma));}}int x,y,n_x,n_y;float r,g,b;Pixel p,tp;Image* temp=new Image(Width(),Height());int radius;if (n%2 == 0){radius = n/2;}else{radius = n/2+1;}for (x=0;x<Width();x++){for(y=0;y< Height();y++){r=0.0;g=0.0;b=0.0;for(int i=0;i<n;i++){for(int j=0;j<n;j++){n_x=((i+x-radius)+Width())%Width();n_y=((j+y-radius)+Height())%Height();p=GetPixel(n_x,n_y);r+=p.r*filter[i][j];g+=p.g*filter[i][j];b+=p.b*filter[i][j];}}tp.r=fmin(fmax(r,0),255);tp.g=fmin(fmax(g,0),255);tp.b=fmin(fmax(b,0),255);temp->SetPixel(x,y,tp);}}
+	float sigma=0.5;sigma=2*pow(sigma,2);float frc=1/(M_PI*sigma);float filter[n][n];for(int i=0;i<n;i++){for(int j=0;j<n;j++){filter[i][j] = frc*exp(-(pow(n/2-i,2)+pow(n/2-j,2))/(sigma));}}int x,y,n_x,n_y;float r,g,b;Pixel p,tp;Image* temp=new Image(Width(),Height());int radius;if (n%2 == 0){radius = n/2;}else{radius = n/2+1;}for (x=0;x<Width();x++){for(y=0;y< Height();y++){r=0.0;g=0.0;b=0.0;for(int i=0;i<n;i++){for(int j=0;j<n;j++){n_x=((i+x-radius)+Width())%Width();n_y=((j+y-radius)+Height())%Height();p=GetPixel(n_x,n_y);r+=p.r*filter[i][j];g+=p.g*filter[i][j];b+=p.b*filter[i][j];}}tp.r=fmin(fmax(r,0),255);tp.g=fmin(fmax(g,0),255);tp.b=fmin(fmax(b,0),255);temp->SetPixel(x,y,tp);}}
 	// the following line is the blur code with all white spaces removed
 
 	// replace image with temp
@@ -541,8 +541,23 @@ void Image::EdgeDetect()
 
 Image* Image::Scale(double sx, double sy)
 {
-	/* WORK HERE */
-	return NULL;
+	int width_n = sx*Width();
+	int height_n = sy*Height();
+
+	float u,v;
+
+	Image* ret = new Image(width_n, height_n);
+
+	for (int x = 0; x < width_n; x++)
+	{
+		for (int y = 0; y < height_n; y++)
+		{
+			u = x/sx;
+			v = y/sy;
+			ret->GetPixel(x,y) = Sample(u,v);
+		}
+	}
+	return ret;
 }
 
 Image* Image::Rotate(double angle)
@@ -567,6 +582,61 @@ void Image::SetSamplingMethod(int method)
 
 
 Pixel Image::Sample (double u, double v){
-    /* WORK HERE */
-	return Pixel();
+    // take two floats and make them ints
+
+	Pixel p; // pixel
+	int x, y, r, g, b;
+
+	// for bilinear interpolation
+	Pixel p1, p2, p3, p4;
+	int x_l, x_h, y_l, y_h; // x and y low and high (floor and ceil)
+	int w1, w2, w3, w4;
+	float fx, fy, fx1, fy1;
+
+    if (sampling_method == 0) // nearest-neighbor (I think)
+    {
+    	//printf("point\n");
+    	// cast doubles as ints (will round down)
+    	x = (int)u;
+    	y = (int)v;
+    	p = GetPixel(x,y);
+    }
+    else if (sampling_method == 1) // 2D bilinear interpolation
+    {
+ 		x_l = (int)u%Width();
+ 		y_l = (int)v%Height();
+    	x_h = ceil(u);
+    	x_h = x_h%Width();
+    	y_h = ceil(v);
+    	y_h = y_h%Height();
+ 
+		p1 = GetPixel(x_l, y_l);
+		p2 = GetPixel(x_h, y_l);
+		p3 = GetPixel(x_l, y_h);
+		p4 = GetPixel(x_h, y_h);
+ 
+		// Calculate the weights for each pixel
+		fx = u - x_l;
+		fy = v - y_l;
+		fx1 = 1.0f - fx;
+		fy1 = 1.0f - fy;
+
+		w1 = fx1 * fy1 * 256.0f;
+		w2 = fx  * fy1 * 256.0f;
+		w3 = fx1 * fy  * 256.0f;
+		w4 = fx  * fy  * 256.0f;
+ 
+		// Calculate the weighted sum of pixels (for each color channel)
+		r = p1.r * w1 + p2.r * w2 + p3.r * w3 + p4.r * w4;
+		g = p1.g * w1 + p2.g * w2 + p3.g * w3 + p4.g * w4;
+		b = p1.b * w1 + p2.b * w2 + p3.b * w3 + p4.b * w4;
+
+		return Pixel(r >> 8, g >> 8, b >> 8, 255);
+    }
+    else if (sampling_method == 2) // gaussian
+    {
+
+    }
+
+	return p;
 }
