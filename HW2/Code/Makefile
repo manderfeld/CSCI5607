@@ -1,10 +1,10 @@
 CC=g++
 MAIN=raytracer.cpp
-#OBJECT=raytracer.o
+DEP=image.cpp pixel.cpp
 EXECUTABLE=raytracer
 
 all: $(MAIN)
-	$(CC) $(MAIN) -o $(EXECUTABLE)
+	$(CC) $(MAIN) -o $(EXECUTABLE) $(DEP)
 
 clean:
-	rm -rf $(EXECUTABLE)
+	rm -rf $(OBJFILES) $(MAIN)
