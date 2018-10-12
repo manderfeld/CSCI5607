@@ -13,6 +13,13 @@
 #include "stb_image_write.h"
 
 
+// Vec3 structure to hold ray information
+struct Vec3
+{
+	float x, y, z;
+	Vec3(float x, float y, float z) : x(x), y(y), z(z) {}
+};
+
 using namespace std;
 
 int main(int argc, char* argv[]){
