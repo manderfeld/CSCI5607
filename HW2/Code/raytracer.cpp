@@ -88,7 +88,7 @@ int main(int argc, char* argv[]){
 
 	char* name = (char*)c; // name of the image (convert const char* to char*)
 	Image *img = new Image(w, h);
-	img->Brighten(1.0);
+	img->Fill(0,0,0);
 	img->Write(name);
 
 	return 0;

@@ -85,7 +85,7 @@ void Image::Write(char* fname){
 	}
 }
 
-void Image::Brighten (double factor)
+void Image::Fill (int r, int g, int b)
 {
 	int x,y;
 	for (x = 0 ; x < Width() ; x++)
@@ -93,9 +93,11 @@ void Image::Brighten (double factor)
 		for (y = 0 ; y < Height() ; y++)
 		{
 			Pixel p = GetPixel(x, y);
-			Pixel scaled_p = p*factor;
-			scaled_p.a = 255;
-			GetPixel(x,y) = scaled_p;
+			p.r = r;
+			p.g = g;
+			p.b = b;
+			p.a = 255;
+			GetPixel(x,y) = p;
 		}
 	}
 }
