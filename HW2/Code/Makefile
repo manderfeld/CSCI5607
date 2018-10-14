@@ -1,6 +1,6 @@
 CC=g++
 MAIN=raytracer.cpp
-DEP=image.cpp pixel.cpp
+DEP=image.cpp pixel.cpp vector.cpp
 EXECUTABLE=raytracer
 
 all: $(MAIN)

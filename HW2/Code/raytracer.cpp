@@ -1,6 +1,7 @@
 //File parsing example
 
 #include "image.h"
+#include "vector.h"
 #include <cstdio>
 #include <iostream>
 #include <fstream>
@@ -12,61 +13,6 @@
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION //only place once in one .cpp files
 #include "stb_image_write.h"
-
-
-// Vec3 structure to hold ray information
-// Eventually move vector stuff to a vector.h file
-struct Vec3
-{
-	float x, y, z;
-	Vec3() : x(0.0), y(0.0), z(0.0) {}
-	Vec3(float x, float y, float z) : x(x), y(y), z(z) {}
-	const float Magnitude() const // don't want to accidentally change values here
-	{
-		return sqrt( x*x + y*y + z*z);
-	}
-	const Vec3 UnitVector() const // don't want to accidentally change values here
-	{
-		const float magnitude = Magnitude();
-		return Vec3(x/magnitude, y/magnitude, z/magnitude);
-	}
-	Vec3& operator += (const Vec3 &a) // don't want to change a's values
-	{
-		x += a.x;
-		y += a.y;
-		z += a.z;
-		return *this;
-	}
-	Vec3& operator *= (const Vec3 &a) // don't want to change a's values
-	{
-		x *= a.x;
-		y *= a.y;
-		z *= a.z;
-		return *this;
-	}
-};
-
-Vec3 operator + (const Vec3 &a, const Vec3 &b)
-{
-	return Vec3( a.x+b.x, a.y+b.y, a.z+b.z);
-}
-Vec3 operator - (const Vec3 &a, const Vec3 &b)
-{
-	return Vec3( a.x-b.x, a.y-b.y, a.z-b.z);
-}
-
-float dotProd(const Vec3 &a, const Vec3 &b)
-{
-	return (a.x*b.x) + (a.y*b.y) + (a.z*b.z);
-}
-Vec3 crossProd(const Vec3 &a, const Vec3 &b)
-{
-	return Vec3(
-		a.y*b.z - b.y*a.z,
-		a.z*b.x - b.z*a.x,
-		a.x*b.y - b.x*a.y
-		);
-}
 
 using namespace std;
 
