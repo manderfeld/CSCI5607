@@ -2,6 +2,7 @@
 
 #include "image.h"
 #include "vector.h"
+#include "objects.h"
 #include <cstdio>
 #include <iostream>
 #include <fstream>
@@ -21,7 +22,10 @@ int main(int argc, char* argv[]){
 	const char* c = "raytraced.bmp"; // char pointer for image name. default is raytraced.bmp
 	int w = 640; // default width
 	int h = 480; // default height
+	int rgb[] = {0, 0, 0};	// default backround RGB values
+	sphere* sp;
 	string line;
+	material* mat;
 	cout << argv[1] << endl;
 
 	// open the file containing the scene description
@@ -58,6 +62,10 @@ int main(int argc, char* argv[]){
 			float x,y,z,r;
 			input >> x >> y >> z >> r;
 			printf("Sphere as position (%f,%f,%f) with radius %f\n",x,y,z,r);
+			if(sp == NULL)
+				sp = new sphere(x, y, z, r, mat);
+			else
+				sp->add(x, y, z, r, mat);
 		}
 		else if (command == "background")
 		{
@@ -65,6 +73,9 @@ int main(int argc, char* argv[]){
 			float r,g,b;
 			input >> r >> g >> b;
 			printf("Background color of (%f,%f,%f)\n",r,g,b);
+			rgb[0] = r * 255;
+			rgb[1] = g * 255;
+			rgb[2] = b * 255;
 		}
 		else if (command == "film_resolution")
 		{
@@ -79,6 +90,50 @@ int main(int argc, char* argv[]){
 			input >> outFile;
 			printf("Render to file named: %s\n", c);
 		}
+		else if (command == "material")
+		{
+			float ar, ag, ab, dr, dg, db, sr, sg, sb, ns, tr, tg, tb, ior;
+			input >> ar >> ag >> ab >> dr >> dg >> db >> sr >> dg >> sb >> ns >> tr >> tg >> tb >> ior;
+			printf("Material\n");
+			if (mat == NULL)
+			{
+				mat = new material(ar, ag, ab, dr, dg, db, sr, sg, sb, ns, tr, tg, tb, ior);
+			}
+			else
+			{
+				delete mat;
+				mat = new material(ar, ag, ab, dr, dg, db, sr, sg, sb, ns, tr, tg, tb, ior);
+			}
+		}
+		else if (command == "directional_light")
+		{
+			float r, g, b, x, y, z;
+			input >> r >> g >> b >> x >> y >> z;
+			printf("Directional light directed at (%f,%f,%f) with color of (%f,%f,%f)\n", x, y, z, r, g, b);
+		}
+		else if (command == "point_light")
+		{
+			float r, g, b, x, y, z;
+			input >> r >> g >> b >> x >> y >> z;
+			printf("Point light at position (%f,%f,%f) with color of (%f,%f,%f)\n", x, y, z, r, g, b);
+		}
+		else if (command == "spot_light")
+		{
+			float r, g, b, px, py, pz, dx, dy, dz, a1, a2;
+			input >> r >> g >> b >> px >> py >> pz >> dx >> dy >> dz >> a1 >> a2;
+			printf("Spot light at position (%f,%f,%f) with color of (%f,%f,%f), direction (%f,%f,%f), and angles %f, and %f\n", px, py, pz, r, g, b, dx, dy, dz, a1, a2);
+
+		}
+		else if (command == "ambient_light")
+		{
+			float r = 0, g = 0, b = 0;
+			input >> r >> g >> b;
+			printf("Ambient light color of (%f,%f,%f)\n", r, g, b);
+		}
+		else if(command == "max_depth")
+		{
+
+		}
 		else
 		{
 			getline(input, line); //skip rest of line
@@ -88,7 +143,7 @@ int main(int argc, char* argv[]){
 
 	char* name = (char*)c; // name of the image (convert const char* to char*)
 	Image *img = new Image(w, h);
-	img->Fill(0,0,0);
+	img->Fill(rgb[0], rgb[1], rgb[2]);
 	img->Write(name);
 
 	return 0;
