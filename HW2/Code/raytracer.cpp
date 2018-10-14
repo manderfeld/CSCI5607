@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cmath>
 
 #define STB_IMAGE_IMPLEMENTATION //only place once in one .cpp file
 #include "stb_image.h"
@@ -14,10 +15,35 @@
 
 
 // Vec3 structure to hold ray information
+// Eventually move vector stuff to a vector.h file
 struct Vec3
 {
 	float x, y, z;
+	Vec3() : x(0.0), y(0.0), z(0.0) {}
 	Vec3(float x, float y, float z) : x(x), y(y), z(z) {}
+	const float Magnitude() const // don't want to accidentally change values
+	{
+		return sqrt( x*x + y*y + z*z);
+	}
+	const Vec3 UnitVector() const
+	{
+		const float magnitude = Magnitude();
+		return Vec3(x/magnitude, y/magnitude, z/magnitude);
+	}
+	Vec3& operator += (const Vec3& a)
+	{
+		x += a.x;
+		y += a.y;
+		z += a.z;
+		return *this;
+	}
+	Vec3& operator *= (const Vec3& a)
+	{
+		x *= a.x;
+		y *= a.y;
+		z *= a.z;
+		return *this;
+	}
 };
 
 using namespace std;
