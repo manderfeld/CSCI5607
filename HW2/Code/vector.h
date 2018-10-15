@@ -56,6 +56,7 @@ struct Ray
 {
     Vec3 o; // origin
     Vec3 d; // direction
+    Ray() : o(0, 0, 0), d(0, 0, 0) {}
     Ray(const Vec3* o, const Vec3* d) : o(o->x, o->y, o->z), d(d->x, d->y, d->z) {}
     Ray(float px, float py, float pz, float dx, float dy, float dz){
         o.x = px; o.y = py; o.z = pz;

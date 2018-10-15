@@ -27,7 +27,7 @@ int main(int argc, char* argv[]){
 	int w = 640; 					// default width
 	int h = 480; 					// default height
 	int rgb[] = {0, 0, 0};			// default backround RGB values
-	sphere* sp = NULL; //= new sphere();
+	Sphere* sp = NULL; //= new Sphere();
 	string line;
 	material* mat = new material(); // default material
 	int md = 5; 					// default max depth
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]){
 			input >> x >> y >> z >> r;
 			printf("Sphere as position (%f,%f,%f) with radius %f\n",x,y,z,r);
 			if(sp == NULL)
-				sp = new sphere(x, y, z, r, mat);
+				sp = new Sphere(x, y, z, r, mat);
 			else
 				sp->add(x, y, z, r, mat);
 		}
@@ -223,7 +223,7 @@ int main(int argc, char* argv[]){
 	Vec3* S = crossProd(*d_u, *u_u);	// vector in direction of positive width
 	Vec3* s_u = S->UnitVector();
 	float xpos, ypos;
-	Ray P0;
+	Ray* P0 = new Ray();
 
 	for (int i = 0; i < w; i++)
 	{
@@ -237,8 +237,8 @@ int main(int argc, char* argv[]){
 			V = pos - cam->O;
 
 			// Use V to find hits
-			P0.o = cam->O;
-			P0.d = V;
+			P0->o = cam->O;
+			P0->d = V;
 			intersect* surf = NULL, *hit = NULL;
 			Sphere* now = sp;
 			if (sp != NULL)
@@ -246,7 +246,7 @@ int main(int argc, char* argv[]){
 				while (hit != NULL);	// finds the closest hit
 				{
 					now = hit->obj;
-					if (hit->hit.Magnitude() > surf->hit.Magnitude)
+					if (hit->hit.Magnitude() > surf->hit.Magnitude())
 					{
 						delete surf;
 						surf = hit;

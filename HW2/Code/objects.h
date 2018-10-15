@@ -58,23 +58,23 @@ public:
 
 class intersect;
 
-class sphere
+class Sphere
 {
 public:
     float x, y, z, r;
     Vec3 O;
-    sphere* next;
+    Sphere* next;
     material* mat;
 
-    sphere() : x(0), y(0), z(0), r(0), next(NULL){}
-    sphere(float x, float y, float z, float r, material* mat) : x(x), y(y), z(z), r(r), next(NULL) 
+    Sphere() : x(0), y(0), z(0), r(0), next(NULL){}
+    Sphere(float x, float y, float z, float r, material* mat) : x(x), y(y), z(z), r(r), next(NULL) 
     {
         O.x = x;
         O.y = y;
         O.z = z;
         this->mat = mat;
     }
-    ~sphere();
+    ~Sphere();
     void add(float x, float y, float z, float r, material* mat);
     intersect* hit(Ray* ray);
 };
@@ -82,10 +82,10 @@ public:
 class intersect
 {
 public:
-    sphere* obj;
+    Sphere* obj;
     Vec3 hit;
 
-    intersect(float x, float y, float z, sphere* o)
+    intersect(float x, float y, float z, Sphere* o)
     {
         hit.x = x;
         hit.y = y;

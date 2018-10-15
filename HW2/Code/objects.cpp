@@ -8,16 +8,16 @@ material::~material()
 	
 }
 
-sphere::~sphere(){
+Sphere::~Sphere(){
     if (mat != NULL)
         delete mat;
     if (next != NULL)
         delete next;
 }
 
-void sphere::add(float x, float y, float z, float r, material* mat){
+void Sphere::add(float x, float y, float z, float r, material* mat){
     if (next == NULL){
-        next = new sphere(x, y, z, r, mat);
+        next = new Sphere(x, y, z, r, mat);
     }
     else{
         next->add(x, y, z, r, mat);
@@ -25,7 +25,7 @@ void sphere::add(float x, float y, float z, float r, material* mat){
     return;
 }
 
-intersect* sphere::hit(Ray* ray){
+intersect* Sphere::hit(Ray* ray){
     #ifdef DEBUG
         printf("In hit\n");
     #endif
