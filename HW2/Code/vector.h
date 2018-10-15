@@ -41,6 +41,7 @@ struct Vec3
         x = a.x;
         y = a.y;
         z = a.z;
+        return *this;
     }
 };
 

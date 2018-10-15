@@ -138,31 +138,31 @@ int main(int argc, char* argv[]){
 		else if (command == "directional_light")
 		{
 		//If the command is a directional light command
-			float r, g, b, x, y, z;
-			input >> r >> g >> b >> x >> y >> z;
-			printf("Directional light directed at (%f,%f,%f) with color of (%f,%f,%f)\n", x, y, z, r, g, b);
+			float dl_r, dl_g, dl_b, dl_x, dl_y, dl_z;
+			input >> dl_r >> dl_g >> dl_b >> dl_x >> dl_y >> dl_z;
+			printf("Directional light directed at (%f,%f,%f) with color of (%f,%f,%f)\n", dl_x, dl_y, dl_z, dl_r, dl_g, dl_b);
 		}
 		else if (command == "point_light")
 		{
 		//If the command is a point light command
-			float r, g, b, x, y, z;
-			input >> r >> g >> b >> x >> y >> z;
-			printf("Point light at position (%f,%f,%f) with color of (%f,%f,%f)\n", x, y, z, r, g, b);
+			float pl_r, pl_g, pl_b, pl_x, pl_y, pl_z;
+			input >> pl_r >> pl_g >> pl_b >> pl_x >> pl_y >> pl_z;
+			printf("Point light at position (%f,%f,%f) with color of (%f,%f,%f)\n", pl_x, pl_y, pl_z, pl_r, pl_g, pl_b);
 		}
 		else if (command == "spot_light")
 		{
 		//If the command is a spot light command
-			float r, g, b, px, py, pz, dx, dy, dz, a1, a2;
-			input >> r >> g >> b >> px >> py >> pz >> dx >> dy >> dz >> a1 >> a2;
-			printf("Spot light at position (%f,%f,%f) with color of (%f,%f,%f), direction (%f,%f,%f), and angles %f, and %f\n", px, py, pz, r, g, b, dx, dy, dz, a1, a2);
+			float sl_r, sl_g, sl_b, sl_px, sl_py, sl_pz, sl_dx, sl_dy, sl_dz, sl_a1, sl_a2;
+			input >> sl_r >> sl_g >> sl_b >> sl_px >> sl_py >> sl_pz >> sl_dx >> sl_dy >> sl_dz >> sl_a1 >> sl_a2;
+			printf("Spot light at position (%f,%f,%f) with color of (%f,%f,%f), direction (%f,%f,%f), and angles %f, and %f\n", sl_px, sl_py, sl_pz, sl_r, sl_g, sl_b, sl_dx, sl_dy, sl_dz, sl_a1, sl_a2);
 
 		}
 		else if (command == "ambient_light")
 		{
 		//If the command is an ambient light command
-			float r = 0, g = 0, b = 0;
-			input >> r >> g >> b;
-			printf("Ambient light color of (%f,%f,%f)\n", r, g, b);
+			float al_r = 0, al_g = 0, al_b = 0;
+			input >> al_r >> al_g >> al_b;
+			printf("Ambient light color of (%f,%f,%f)\n", al_r, al_g, al_b);
 		}
 		else if(command == "max_depth")
 		{
@@ -224,7 +224,7 @@ int main(int argc, char* argv[]){
 	Vec3* s_u = S->UnitVector();
 	float xpos, ypos;
 	Ray* P0 = new Ray();
-
+/*
 	for (int i = 0; i < w; i++)
 	{
 		for (int j = 0; j < h; j++)
@@ -243,7 +243,8 @@ int main(int argc, char* argv[]){
 			Sphere* now = sp;
 			if (sp != NULL)
 				hit = now->hit(P0);
-				while (hit != NULL);	// finds the closest hit
+				while (hit != NULL)
+				;	// finds the closest hit
 				{
 					now = hit->obj;
 					if (hit->hit.Magnitude() > surf->hit.Magnitude())
@@ -263,6 +264,7 @@ int main(int argc, char* argv[]){
 			img->GetPixel(i, j) = p;
 		}
 	}
+*/
 
 	delete d_u;
 	delete u_u;

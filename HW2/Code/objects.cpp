@@ -43,14 +43,23 @@ intersect* Sphere::hit(Ray* ray){
     float d2 = dotProd(L, L) - (tca * tca);
     if (d2 >  r * r)    // Exit condition 2
     {
+// QUESTION:
+//  Do we need to go to the next object?
+//	If d2 > r*r and we don't return, then we'll
+//	get a negative value in the squareroot (calculating thc)
+    	/*
         if(next == NULL)
             return NULL;
         else
             next->hit(ray);
+        */
+        return NULL;
     }
 
     float thc = sqrt((r * r) - d2);
-    float t_close = tca - thc, t_far = tca + thc;
+printf("THC: %f, r: %f, d2: %f, stuff: %f\n", thc, r, d2, r*r-d2); // troubleshooting nan stuff
+    float t_close = tca - thc;
+    float t_far = tca + thc;
 
     #ifdef DEBUG
         printf("tc %f, tf %f\n", t_close, t_far);
