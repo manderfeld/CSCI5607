@@ -1,4 +1,4 @@
-#Simple Sphere Sceen
+#Simple Sphere Scene
 camera -6 2 -4 .77 0 .64 0 1 0 35
 output_image spheres1.bmp
 
