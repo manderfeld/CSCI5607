@@ -28,6 +28,17 @@ int main(int argc, char* argv[]){
 	string line;
 	material* mat = new material(); // default material
 	int md = 5; 					// default max depth
+	// Camera default values
+		float px = 0.0;
+		float py = 0.0;
+		float pz = 0.0;
+		float dx = 0.0; 
+		float dy = 0.0;
+		float dz = 1.0;
+		float ux = 0.0;
+		float uy = 1.0;
+		float uz = 0.0;
+		float ha = 45.0;
 	cout << argv[1] << endl;
 
 	// open the file containing the scene description
@@ -83,10 +94,14 @@ int main(int argc, char* argv[]){
 		else if (command == "camera")
 		{
 		//If the command is a camera command
-			float px, py, pz, dx, dy, dz, ux, uy, uz, ha;
-			input >> px >> py >> pz >> dx >> dy >> dz >> ux >> uy >> uz >> ha;
-			printf("Camera at (%f,%f,%f) looking at (%f,%f,%f) with up (%f,%f,%f) and ha %f\n",px,py,pz, dx,dy,dz, ux,uy,uz, ha);
-			
+			float pxi, pyi, pzi, dxi, dyi, dzi, uxi, uyi, uzi, hai;
+			input >> pxi >> pyi >> pzi >> dxi >> dyi >> dzi >> uxi >> uyi >> uzi >> hai;
+			printf("Camera at (%f,%f,%f) looking at (%f,%f,%f) with up (%f,%f,%f) and ha %f\n",pxi,pyi,pzi, dxi,dyi,dzi, uxi,uyi,uzi, hai);
+
+			px = pxi; py = pyi; pz = pzi;
+			dx = dxi; dy = dyi; dz = dzi;
+			ux = uxi; uy = uyi; uz = uzi;
+			ha = hai;
 		}
 		else if (command == "film_resolution")
 		{
