@@ -130,7 +130,7 @@ int main(int argc, char* argv[]){
 		{
 		//If the command is a material command
 			float ar, ag, ab, dr, dg, db, sr, sg, sb, ns, tr, tg, tb, ior;
-			input >> ar >> ag >> ab >> dr >> dg >> db >> sr >> dg >> sb >> ns >> tr >> tg >> tb >> ior;
+			input >> ar >> ag >> ab >> dr >> dg >> db >> sr >> sg >> sb >> ns >> tr >> tg >> tb >> ior;
 			delete mat;
 			mat = new material(ar, ag, ab, dr, dg, db, sr, sg, sb, ns, tr, tg, tb, ior);
 			printf("Material as (%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)\n", ar, ag, ab, dr, dg, db, sr, sg, sb, ns, tr, tg, tb, ior);
@@ -224,7 +224,7 @@ int main(int argc, char* argv[]){
 	Vec3* s_u = S->UnitVector();
 	float xpos, ypos;
 	Ray* P0 = new Ray();
-/*
+
 	for (int i = 0; i < w; i++)
 	{
 		for (int j = 0; j < h; j++)
@@ -264,7 +264,6 @@ int main(int argc, char* argv[]){
 			img->GetPixel(i, j) = p;
 		}
 	}
-*/
 
 	delete d_u;
 	delete u_u;

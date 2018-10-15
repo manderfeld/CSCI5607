@@ -32,6 +32,7 @@ intersect* Sphere::hit(Ray* ray){
     Vec3 L = O - ray->o;
     Vec3* V = ray->d.UnitVector();
     float tca = dotProd(L, *V); // L * V;
+
     if(tca < 0) // Exit condition 1
     {
         if(next == NULL)
@@ -41,6 +42,7 @@ intersect* Sphere::hit(Ray* ray){
     }
 
     float d2 = dotProd(L, L) - (tca * tca);
+
     if (d2 >  r * r)    // Exit condition 2
     {
 // QUESTION:
@@ -55,9 +57,7 @@ intersect* Sphere::hit(Ray* ray){
         */
         return NULL;
     }
-
     float thc = sqrt((r * r) - d2);
-printf("THC: %f, r: %f, d2: %f, stuff: %f\n", thc, r, d2, r*r-d2); // troubleshooting nan stuff
     float t_close = tca - thc;
     float t_far = tca + thc;
 
