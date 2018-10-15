@@ -207,11 +207,9 @@ int main(int argc, char* argv[]){
 	/////////////////
 	/////////////////
 
-	
 	char* name = (char*)c; // name of the image (convert const char* to char*)
 	Image *img = new Image(w, h);
 	img->Fill(rgb[0], rgb[1], rgb[2]);
-	img->Write(name);
 
 	if (cam == NULL)
 		cam = new Camera;
@@ -242,8 +240,29 @@ int main(int argc, char* argv[]){
 			intersect* surf = NULL, *hit = NULL;
 			Sphere* now = sp;
 			if (sp != NULL)
+			{
+				hit = NULL;
 				hit = now->hit(P0);
-				while (hit != NULL)
+			}
+
+			Pixel p;
+			if (hit != NULL) // HIT
+			{
+				printf("HIT\n");
+				p.r = 255;
+				p.g = 0;
+				p.b = 0;
+				p.a = 255;
+			}
+			else 			 // MISS
+			{
+				printf("MISS\n");
+				p.r = 0;
+				p.g = 255;
+				p.b = 0;
+				p.a = 255;
+			}
+				/*while (hit != NULL)
 				;	// finds the closest hit
 				{
 					now = hit->obj;
@@ -257,10 +276,10 @@ int main(int argc, char* argv[]){
 						delete hit;
 					}
 					hit = now->hit(P0);
-				}
+				}*/
 			
 			// Image processing
-			Pixel p;
+			//Pixel p;
 			img->GetPixel(i, j) = p;
 		}
 	}
@@ -269,6 +288,8 @@ int main(int argc, char* argv[]){
 	delete u_u;
 	delete S;
 	delete s_u;
+
+	img->Write(name);
 
 	return 0;
 }

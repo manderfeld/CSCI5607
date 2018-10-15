@@ -27,7 +27,7 @@ void Sphere::add(float x, float y, float z, float r, material* mat){
 
 intersect* Sphere::hit(Ray* ray){
     #ifdef DEBUG
-        printf("In hit\n");
+        //printf("In hit\n");
     #endif
     Vec3 L = O - ray->o;
     Vec3* V = ray->d.UnitVector();
@@ -36,9 +36,13 @@ intersect* Sphere::hit(Ray* ray){
     if(tca < 0) // Exit condition 1
     {
         if(next == NULL)
+        {
             return NULL;
+        }
         else
+        {
             next->hit(ray);
+        }
     }
 
     float d2 = dotProd(L, L) - (tca * tca);
