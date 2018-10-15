@@ -77,6 +77,14 @@ int main(int argc, char* argv[]){
 			rgb[1] = g * 255;
 			rgb[2] = b * 255;
 		}
+		else if (command == "camera")
+		{
+		//If the command is a camera command
+			float px, py, pz, dx, dy, dz, ux, uy, uz, ha;
+			intput >> px >> py >> pz >> dx >> dy >> dz >> ux >> uy >> uz >> ha;
+			printf("Camera at (%f,%f,%f) looking at (%f,%f,%f) with up (%f,%f,%f) and ha %f\n",px,py,pz, dx,dy,dz, ux,uy,yz, ha);
+			
+		}
 		else if (command == "film_resolution")
 		{
 			input >> w >> h;
@@ -92,6 +100,7 @@ int main(int argc, char* argv[]){
 		}
 		else if (command == "material")
 		{
+		//If the command is a material command
 			float ar, ag, ab, dr, dg, db, sr, sg, sb, ns, tr, tg, tb, ior;
 			input >> ar >> ag >> ab >> dr >> dg >> db >> sr >> dg >> sb >> ns >> tr >> tg >> tb >> ior;
 			printf("Material\n");
@@ -107,18 +116,21 @@ int main(int argc, char* argv[]){
 		}
 		else if (command == "directional_light")
 		{
+		//If the command is a directional light command
 			float r, g, b, x, y, z;
 			input >> r >> g >> b >> x >> y >> z;
 			printf("Directional light directed at (%f,%f,%f) with color of (%f,%f,%f)\n", x, y, z, r, g, b);
 		}
 		else if (command == "point_light")
 		{
+		//If the command is a point light command
 			float r, g, b, x, y, z;
 			input >> r >> g >> b >> x >> y >> z;
 			printf("Point light at position (%f,%f,%f) with color of (%f,%f,%f)\n", x, y, z, r, g, b);
 		}
 		else if (command == "spot_light")
 		{
+		//If the command is a spot light command
 			float r, g, b, px, py, pz, dx, dy, dz, a1, a2;
 			input >> r >> g >> b >> px >> py >> pz >> dx >> dy >> dz >> a1 >> a2;
 			printf("Spot light at position (%f,%f,%f) with color of (%f,%f,%f), direction (%f,%f,%f), and angles %f, and %f\n", px, py, pz, r, g, b, dx, dy, dz, a1, a2);
@@ -126,6 +138,7 @@ int main(int argc, char* argv[]){
 		}
 		else if (command == "ambient_light")
 		{
+		//If the command is an ambient light command
 			float r = 0, g = 0, b = 0;
 			input >> r >> g >> b;
 			printf("Ambient light color of (%f,%f,%f)\n", r, g, b);
