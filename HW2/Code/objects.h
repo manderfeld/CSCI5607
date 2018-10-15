@@ -1,9 +1,13 @@
-//Objjects.h
+//Objects.h
 //
 //Class representing various objects within the scene
 
 #include <cmath>
 #include <cstddef>
+
+// for testing
+#include <iostream>
+using namespace std;
 
 #ifndef OBJECTS
 #define OBJECTS
@@ -16,7 +20,7 @@ public:
     material() : ar(0), ag(0), ab(0), dr(1), dg(1), db(1), sr(0), sg(0), sb(0), ns(5), tr(0), tg(0), tb(0), ior(1) {}
     material(float ar, float ag, float ab, float dr, float dg, float db, float sr, float sg, float sb, float ns, float tr, float tg, float tb, float ior)
         : ar(ar), ag(ag), ab(ab), dr(dr), dg(dg), db(db), sr(sr), sg(sg), sb(sb), ns(ns), tr(tr), tg(tg), tb(tb), ior(ior) {}
-
+    ~material();
     material& operator = (const material &a) // don't want to change a's values
     {
         ar = a.ar;
@@ -50,7 +54,6 @@ public:
         this->mat = mat;
     }
     ~sphere();
-
     void add(float x, float y, float z, float r, material* mat);
     material* intersect();
 };

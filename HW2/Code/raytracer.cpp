@@ -23,9 +23,9 @@ int main(int argc, char* argv[]){
 	int w = 640; // default width
 	int h = 480; // default height
 	int rgb[] = {0, 0, 0};	// default backround RGB values
-	sphere* sp;
+	sphere* sp = new sphere();
 	string line;
-	material* mat;
+	material* mat = new material();
 	cout << argv[1] << endl;
 
 	// open the file containing the scene description
@@ -53,7 +53,8 @@ int main(int argc, char* argv[]){
 		if (command[0] == '#')
 		{
 			getline(input, line); //skip rest of line
-			cout << "Skipping comment: " << command  << line <<  endl;
+			printf("\tSkipping comment: %s%s\n", command.c_str(), line.c_str());
+			//cout << "Skipping comment: " << command  << line <<  endl;
 			continue;
 		}
 		if (command == "sphere")
@@ -103,16 +104,9 @@ int main(int argc, char* argv[]){
 		//If the command is a material command
 			float ar, ag, ab, dr, dg, db, sr, sg, sb, ns, tr, tg, tb, ior;
 			input >> ar >> ag >> ab >> dr >> dg >> db >> sr >> dg >> sb >> ns >> tr >> tg >> tb >> ior;
-			printf("Material\n");
-			if (mat == NULL)
-			{
-				mat = new material(ar, ag, ab, dr, dg, db, sr, sg, sb, ns, tr, tg, tb, ior);
-			}
-			else
-			{
-				delete mat;
-				mat = new material(ar, ag, ab, dr, dg, db, sr, sg, sb, ns, tr, tg, tb, ior);
-			}
+			delete mat;
+			mat = new material(ar, ag, ab, dr, dg, db, sr, sg, sb, ns, tr, tg, tb, ior);
+			printf("Material as (%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n", ar, ag, ab, dr, dg, db, sr, sg, sb, ns, tr, tg, tb, ior);
 		}
 		else if (command == "directional_light")
 		{
@@ -150,7 +144,8 @@ int main(int argc, char* argv[]){
 		else
 		{
 			getline(input, line); //skip rest of line
-			cout << "WARNING. Do not know command: " << command << endl;
+			printf("\tWARNING. Do not know command: %s \n", command.c_str());
+			//cout << "WARNING. Do not know command: " << command << endl;
 		}
 	}
 

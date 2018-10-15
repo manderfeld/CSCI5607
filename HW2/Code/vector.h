@@ -1,6 +1,7 @@
 //Vector.h
 //
 //Class representing a vector (vec3 because it has x, y, and z coordinates)
+//Includes ray as well
 
 #include <cmath>
 
@@ -42,5 +43,13 @@ Vec3 operator - (const Vec3 &a, const Vec3 &b);
 
 float dotProd(const Vec3 &a, const Vec3 &b);
 Vec3 crossProd(const Vec3 &a, const Vec3 &b);
+
+// We'll also put rays here
+struct Ray
+{
+    Vec3 o; // origin
+    Vec3 d; // direction
+    Ray(const Vec3& o, const Vec3& d) : o(o), d(d) {}
+};
 
 #endif
