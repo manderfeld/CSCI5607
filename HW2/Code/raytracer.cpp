@@ -19,13 +19,15 @@ using namespace std;
 
 int main(int argc, char* argv[]){
 
+// Defaults
 	const char* c = "raytraced.bmp"; // char pointer for image name. default is raytraced.bmp
-	int w = 640; // default width
-	int h = 480; // default height
-	int rgb[] = {0, 0, 0};	// default backround RGB values
+	int w = 640; 					// default width
+	int h = 480; 					// default height
+	int rgb[] = {0, 0, 0};			// default backround RGB values
 	sphere* sp = new sphere();
 	string line;
-	material* mat = new material();
+	material* mat = new material(); // default material
+	int md = 5; 					// default max depth
 	cout << argv[1] << endl;
 
 	// open the file containing the scene description
@@ -82,22 +84,26 @@ int main(int argc, char* argv[]){
 		{
 		//If the command is a camera command
 			float px, py, pz, dx, dy, dz, ux, uy, uz, ha;
-			intput >> px >> py >> pz >> dx >> dy >> dz >> ux >> uy >> uz >> ha;
-			printf("Camera at (%f,%f,%f) looking at (%f,%f,%f) with up (%f,%f,%f) and ha %f\n",px,py,pz, dx,dy,dz, ux,uy,yz, ha);
+			input >> px >> py >> pz >> dx >> dy >> dz >> ux >> uy >> uz >> ha;
+			printf("Camera at (%f,%f,%f) looking at (%f,%f,%f) with up (%f,%f,%f) and ha %f\n",px,py,pz, dx,dy,dz, ux,uy,uz, ha);
 			
 		}
 		else if (command == "film_resolution")
 		{
-			input >> w >> h;
-			printf("Image with width %d and height %d\n", w, h);
+			int wi, hi;
+			input >> wi >> hi;
+			printf("Image with width %d and height %d\n", wi, hi);
+			w = wi;
+			h = hi;
 		}
 		else if (command == "output_image")
 		{
 		//If the command is an output_image command
 			string outFile;
-			c = outFile.c_str();
+			//c = outFile.c_str();
 			input >> outFile;
-			printf("Render to file named: %s\n", c);
+			printf("Render to file named: %s\n", outFile.c_str());
+			c = outFile.c_str();
 		}
 		else if (command == "material")
 		{
@@ -139,7 +145,8 @@ int main(int argc, char* argv[]){
 		}
 		else if(command == "max_depth")
 		{
-
+			//input >> md;
+			//md = 
 		}
 		else
 		{
