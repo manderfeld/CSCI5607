@@ -171,6 +171,16 @@ int main(int argc, char* argv[]){
 		}
 	}
 
+
+	Vec3* a = new Vec3(1,2,3);
+	Vec3* anormal = a->UnitVector();
+
+	float mag = anormal->Magnitude();
+	printf("mag: %f\n", mag);
+
+	delete a;
+	delete anormal;
+
 	char* name = (char*)c; // name of the image (convert const char* to char*)
 	Image *img = new Image(w, h);
 	img->Fill(rgb[0], rgb[1], rgb[2]);

@@ -17,10 +17,10 @@ struct Vec3
     {
         return sqrt( x*x + y*y + z*z);
     }
-    const Vec3 UnitVector() const // don't want to accidentally change values here
+    Vec3* UnitVector() const // don't want to accidentally change values here
     {
         const float magnitude = Magnitude();
-        return Vec3(x/magnitude, y/magnitude, z/magnitude);
+        return new Vec3(x/magnitude, y/magnitude, z/magnitude);
     }
     Vec3& operator += (const Vec3 &a) // don't want to change a's values
     {
