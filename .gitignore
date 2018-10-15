@@ -1,1 +1,8 @@
 .DS_Store
+# Compiled Object Files
+*.o
+*.obj
+# Image Files
+*.bmp
+*.png
+*.jpg
