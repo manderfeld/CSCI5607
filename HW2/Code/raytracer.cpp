@@ -43,6 +43,12 @@ int main(int argc, char* argv[]){
 		float uz = 0.0;
 		float ha = 45.0;
 	Camera* cam = NULL;
+
+	// Lighting
+	float dl_r, dl_g, dl_b, dl_x, dl_y, dl_z;
+	float pl_r, pl_g, pl_b, pl_x, pl_y, pl_z;
+	float sl_r, sl_g, sl_b, sl_px, sl_py, sl_pz, sl_dx, sl_dy, sl_dz, sl_a1, sl_a2;
+	float al_r = 0, al_g = 0, al_b = 0;
 	cout << argv[1] << endl;
 
 	// open the file containing the scene description
@@ -138,21 +144,21 @@ int main(int argc, char* argv[]){
 		else if (command == "directional_light")
 		{
 		//If the command is a directional light command
-			float dl_r, dl_g, dl_b, dl_x, dl_y, dl_z;
+			//float dl_r, dl_g, dl_b, dl_x, dl_y, dl_z;
 			input >> dl_r >> dl_g >> dl_b >> dl_x >> dl_y >> dl_z;
 			printf("Directional light directed at (%f,%f,%f) with color of (%f,%f,%f)\n", dl_x, dl_y, dl_z, dl_r, dl_g, dl_b);
 		}
 		else if (command == "point_light")
 		{
 		//If the command is a point light command
-			float pl_r, pl_g, pl_b, pl_x, pl_y, pl_z;
+			//float pl_r, pl_g, pl_b, pl_x, pl_y, pl_z;
 			input >> pl_r >> pl_g >> pl_b >> pl_x >> pl_y >> pl_z;
 			printf("Point light at position (%f,%f,%f) with color of (%f,%f,%f)\n", pl_x, pl_y, pl_z, pl_r, pl_g, pl_b);
 		}
 		else if (command == "spot_light")
 		{
 		//If the command is a spot light command
-			float sl_r, sl_g, sl_b, sl_px, sl_py, sl_pz, sl_dx, sl_dy, sl_dz, sl_a1, sl_a2;
+			//float sl_r, sl_g, sl_b, sl_px, sl_py, sl_pz, sl_dx, sl_dy, sl_dz, sl_a1, sl_a2;
 			input >> sl_r >> sl_g >> sl_b >> sl_px >> sl_py >> sl_pz >> sl_dx >> sl_dy >> sl_dz >> sl_a1 >> sl_a2;
 			printf("Spot light at position (%f,%f,%f) with color of (%f,%f,%f), direction (%f,%f,%f), and angles %f, and %f\n", sl_px, sl_py, sl_pz, sl_r, sl_g, sl_b, sl_dx, sl_dy, sl_dz, sl_a1, sl_a2);
 
@@ -160,7 +166,7 @@ int main(int argc, char* argv[]){
 		else if (command == "ambient_light")
 		{
 		//If the command is an ambient light command
-			float al_r = 0, al_g = 0, al_b = 0;
+			//float al_r = 0, al_g = 0, al_b = 0;
 			input >> al_r >> al_g >> al_b;
 			printf("Ambient light color of (%f,%f,%f)\n", al_r, al_g, al_b);
 		}
