@@ -66,7 +66,7 @@ intersect* Sphere::hit(Ray* ray){
     float t_far = tca + thc;
 
     #ifdef DEBUG
-        printf("tc %f, tf %f\n", t_close, t_far);
+        //printf("tc %f, tf %f\n", t_close, t_far);
     #endif
 
     Vec3* temp = ray->d.UnitVector();

@@ -181,6 +181,7 @@ int main(int argc, char* argv[]){
 	/////////////////
 	// Debug stuff //
 	/////////////////
+	/*
 	#ifdef DEBUG
 		Vec3* a = new Vec3(1,2,3);
 		Vec3* anormal = a->UnitVector();
@@ -204,6 +205,7 @@ int main(int argc, char* argv[]){
 
 		delete r;
 	#endif
+	*/
 	/////////////////
 	/////////////////
 
@@ -223,15 +225,23 @@ int main(int argc, char* argv[]){
 	float xpos, ypos;
 	Ray* P0 = new Ray();
 
+	D = h / (2 * tanf(cam->ha * M_PI/180.0f)) * *d_u;
+
+// Debugging stuff
+	//D = 240.0 * *d_u;
+	//float storeTan = h / (2 * tanf(cam->ha * M_PI/180.0f));
+	//D = 153.133545 * *d_u;
+	//printf("value tan: %f\t%f\n", (h / (2 * tanf(cam->ha * M_PI/180.0f))), storeTan);
+	//printf("value arctan: %f\n", (h / (2 * atanf(cam->ha * 2 * M_PI))));
+
 	for (int i = 0; i < w; i++)
 	{
 		for (int j = 0; j < h; j++)
 		{	
 			// find V
-			xpos = i - w/2.0;
-			ypos = j - h/2.0;
-			D = (h / (2 * atan(cam->ha))) * *d_u;
-			pos = cam->O + D + (xpos * *u_u) + (ypos * *s_u);
+			xpos = w/2.0 - i;
+			ypos = h/2.0 - j;
+			pos = cam->O + D + (ypos * *u_u) + (xpos * *s_u);
 			V = pos - cam->O;
 
 			// Use V to find hits
@@ -248,7 +258,7 @@ int main(int argc, char* argv[]){
 			Pixel p;
 			if (hit != NULL) // HIT
 			{
-				printf("HIT\n");
+				//printf("HIT\n");
 				p.r = 255;
 				p.g = 0;
 				p.b = 0;
@@ -256,7 +266,7 @@ int main(int argc, char* argv[]){
 			}
 			else 			 // MISS
 			{
-				printf("MISS\n");
+				//printf("MISS\n");
 				p.r = 0;
 				p.g = 255;
 				p.b = 0;
