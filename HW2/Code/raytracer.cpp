@@ -259,18 +259,29 @@ int main(int argc, char* argv[]){
 			if (hit != NULL) // HIT
 			{
 				//printf("HIT\n");
+				now = hit->obj;
+				material* color = now->mat;
+				p.r = 255 * color->ar;
+				p.g = 255 * color->ag;
+				p.b = 255 * color->ab;
+
+				p.a = 255;
+				/*
 				p.r = 255;
 				p.g = 0;
 				p.b = 0;
-				p.a = 255;
+				p.a = 255;*/
 			}
 			else 			 // MISS
 			{
+				// Miss, don't change anything because it's the background
+				/*
 				//printf("MISS\n");
 				p.r = 0;
 				p.g = 255;
 				p.b = 0;
 				p.a = 255;
+				*/
 			}
 				/*while (hit != NULL)
 				;	// finds the closest hit
