@@ -40,6 +40,7 @@ struct Vec3
 
 Vec3 operator + (const Vec3 &a, const Vec3 &b);
 Vec3 operator - (const Vec3 &a, const Vec3 &b);
+Vec3 operator * (const float &a, const Vec3 &b);
 
 float dotProd(const Vec3 &a, const Vec3 &b);
 Vec3 crossProd(const Vec3 &a, const Vec3 &b);
@@ -49,7 +50,11 @@ struct Ray
 {
     Vec3 o; // origin
     Vec3 d; // direction
-    Ray(const Vec3& o, const Vec3& d) : o(o), d(d) {}
+    Ray(const Vec3* o, const Vec3* d) : o(o->x, o->y, o->z), d(d->x, d->y, d->z) {}
+    Ray(float px, float py, float pz, float dx, float dy, float dz){
+        o.x = px; o.y = py; o.z = pz;
+        d.x = dx; d.y = dy; d.z = dz;
+    }
 };
 
 #endif

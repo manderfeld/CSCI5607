@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include "vector.h"
 
 // for testing
 #include <iostream>
@@ -41,21 +42,42 @@ public:
     }
 };
 
+class intersect;
+
 class sphere
 {
 public:
     float x, y, z, r;
+    Vec3 O;
     sphere* next;
     material* mat;
 
     sphere() : x(0), y(0), z(0), r(0), next(NULL){}
     sphere(float x, float y, float z, float r, material* mat) : x(x), y(y), z(z), r(r), next(NULL) 
     {
+        O.x = x;
+        O.y = y;
+        O.z = z;
         this->mat = mat;
     }
     ~sphere();
     void add(float x, float y, float z, float r, material* mat);
-    material* intersect();
+    intersect* hit(Ray* ray);
+};
+
+class intersect
+{
+public:
+    sphere* obj;
+    Vec3 hit;
+
+    intersect(float x, float y, float z, sphere* o)
+    {
+        hit.x = x;
+        hit.y = y;
+        hit.z = z;
+        obj = o;
+    }
 };
 
 #endif

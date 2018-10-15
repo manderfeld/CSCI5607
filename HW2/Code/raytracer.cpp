@@ -8,6 +8,7 @@
 #include <fstream>
 #include <string>
 #include <cmath>
+#include <cstddef>
 
 #define STB_IMAGE_IMPLEMENTATION //only place once in one .cpp file
 #include "stb_image.h"
@@ -24,7 +25,7 @@ int main(int argc, char* argv[]){
 	int w = 640; 					// default width
 	int h = 480; 					// default height
 	int rgb[] = {0, 0, 0};			// default backround RGB values
-	sphere* sp = new sphere();
+	sphere* sp = NULL; //= new sphere();
 	string line;
 	material* mat = new material(); // default material
 	int md = 5; 					// default max depth
@@ -127,7 +128,7 @@ int main(int argc, char* argv[]){
 			input >> ar >> ag >> ab >> dr >> dg >> db >> sr >> dg >> sb >> ns >> tr >> tg >> tb >> ior;
 			delete mat;
 			mat = new material(ar, ag, ab, dr, dg, db, sr, sg, sb, ns, tr, tg, tb, ior);
-			printf("Material as (%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n", ar, ag, ab, dr, dg, db, sr, sg, sb, ns, tr, tg, tb, ior);
+			printf("Material as (%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)\n", ar, ag, ab, dr, dg, db, sr, sg, sb, ns, tr, tg, tb, ior);
 		}
 		else if (command == "directional_light")
 		{
@@ -185,6 +186,19 @@ int main(int argc, char* argv[]){
 	Image *img = new Image(w, h);
 	img->Fill(rgb[0], rgb[1], rgb[2]);
 	img->Write(name);
+
+	Vec3 o(px, py, pz), d(dx, dy, dz);
+	Ray* r = new Ray(&o, &d);
+	// Ray* r(px, py, pz, dx, dy, dz);
+
+	intersect* surf = sp->hit(r);
+
+	if (surf != NULL)
+		printf("HIT (%f,%f,%f)\n", surf->hit.x, surf->hit.y, surf->hit.z);
+	else
+		printf("MISS\n");
+
+	delete r;
 
 	return 0;
 }
