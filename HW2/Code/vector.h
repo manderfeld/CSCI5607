@@ -36,6 +36,12 @@ struct Vec3
         z *= a.z;
         return *this;
     }
+    Vec3& operator = (const Vec3&a) // don't want to change a's values
+    {
+        x = a.x;
+        y = a.y;
+        z = a.z;
+    }
 };
 
 Vec3 operator + (const Vec3 &a, const Vec3 &b);
@@ -43,7 +49,7 @@ Vec3 operator - (const Vec3 &a, const Vec3 &b);
 Vec3 operator * (const float &a, const Vec3 &b);
 
 float dotProd(const Vec3 &a, const Vec3 &b);
-Vec3 crossProd(const Vec3 &a, const Vec3 &b);
+Vec3* crossProd(const Vec3 &a, const Vec3 &b);
 
 // We'll also put rays here
 struct Ray

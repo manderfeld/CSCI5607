@@ -13,6 +13,20 @@ using namespace std;
 #ifndef OBJECTS
 #define OBJECTS
 
+class Camera
+{
+public:
+    Vec3 O;
+    Vec3 D;
+    Vec3 U;
+    float ha;
+
+    Camera() : O(0, 0, 0), D(0, 0, 1), U(0, 1, 0), ha(45) {}
+    Camera(const Vec3* o, const Vec3* d, const Vec3* u, float ha) : O(o->x, o->y, o->z), D(d->x, d->y, d->z), U(u->x, u->y, u->z), ha(ha) {}
+    Camera(float ox, float oy, float oz, float dx, float dy, float dz, float ux, float uy, float uz, float ha)
+        : O(ox, oy, oz), D(dx, dy, dz), U(ux, uy, uz), ha(ha) {}
+};
+
 class material
 {
 public:

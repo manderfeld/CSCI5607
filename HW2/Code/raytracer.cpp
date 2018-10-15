@@ -10,6 +10,8 @@
 #include <cmath>
 #include <cstddef>
 
+#define DEBUG
+
 #define STB_IMAGE_IMPLEMENTATION //only place once in one .cpp file
 #include "stb_image.h"
 
@@ -40,6 +42,7 @@ int main(int argc, char* argv[]){
 		float uy = 1.0;
 		float uz = 0.0;
 		float ha = 45.0;
+	Camera* cam = NULL;
 	cout << argv[1] << endl;
 
 	// open the file containing the scene description
@@ -98,6 +101,8 @@ int main(int argc, char* argv[]){
 			float pxi, pyi, pzi, dxi, dyi, dzi, uxi, uyi, uzi, hai;
 			input >> pxi >> pyi >> pzi >> dxi >> dyi >> dzi >> uxi >> uyi >> uzi >> hai;
 			printf("Camera at (%f,%f,%f) looking at (%f,%f,%f) with up (%f,%f,%f) and ha %f\n",pxi,pyi,pzi, dxi,dyi,dzi, uxi,uyi,uzi, hai);
+
+			cam = new Camera(pxi, pyi, pzi, dxi, dyi, dzi, uxi, uyi, uzi, hai);
 
 			px = pxi; py = pyi; pz = pzi;
 			dx = dxi; dy = dyi; dz = dzi;
@@ -173,32 +178,96 @@ int main(int argc, char* argv[]){
 	}
 
 
-	Vec3* a = new Vec3(1,2,3);
-	Vec3* anormal = a->UnitVector();
+	/////////////////
+	// Debug stuff //
+	/////////////////
+	#ifdef DEBUG
+		Vec3* a = new Vec3(1,2,3);
+		Vec3* anormal = a->UnitVector();
 
-	float mag = anormal->Magnitude();
-	printf("mag: %f\n", mag);
+		float mag = anormal->Magnitude();
+		printf("mag: %f\n", mag);
 
-	delete a;
-	delete anormal;
+		delete a;
+		delete anormal;
 
+		Vec3 o(px, py, pz), d(dx, dy, dz);
+		Ray* r = new Ray(&o, &d);
+		// Ray* r(px, py, pz, dx, dy, dz);
+
+		intersect* surf = sp->hit(r);
+
+		if (surf != NULL)
+			printf("HIT (%f,%f,%f)\n", surf->hit.x, surf->hit.y, surf->hit.z);
+		else
+			printf("MISS\n");
+
+		delete r;
+	#endif
+	/////////////////
+	/////////////////
+
+	
 	char* name = (char*)c; // name of the image (convert const char* to char*)
 	Image *img = new Image(w, h);
 	img->Fill(rgb[0], rgb[1], rgb[2]);
 	img->Write(name);
 
-	Vec3 o(px, py, pz), d(dx, dy, dz);
-	Ray* r = new Ray(&o, &d);
-	// Ray* r(px, py, pz, dx, dy, dz);
+	if (cam == NULL)
+		cam = new Camera;
 
-	intersect* surf = sp->hit(r);
+	Vec3 V, pos;	// V is the directional vector of the current ray, pos is the current pixel position
+	Vec3 D; 		// D is the direction vector from the camera augmented to fit the trigonometry for the calculation of V
+	Vec3* d_u = cam->D.UnitVector();	// *_u denote unit vector
+	Vec3* u_u = cam->U.UnitVector();
+	Vec3* S = crossProd(*d_u, *u_u);	// vector in direction of positive width
+	Vec3* s_u = S->UnitVector();
+	float xpos, ypos;
+	Ray P0;
 
-	if (surf != NULL)
-		printf("HIT (%f,%f,%f)\n", surf->hit.x, surf->hit.y, surf->hit.z);
-	else
-		printf("MISS\n");
+	for (int i = 0; i < w; i++)
+	{
+		for (int j = 0; j < h; j++)
+		{	
+			// find V
+			xpos = i - w/2.0;
+			ypos = j - h/2.0;
+			D = (h / (2 * atan(cam->ha))) * *d_u;
+			pos = cam->O + D + (xpos * *u_u) + (ypos * *s_u);
+			V = pos - cam->O;
 
-	delete r;
+			// Use V to find hits
+			P0.o = cam->O;
+			P0.d = V;
+			intersect* surf = NULL, *hit = NULL;
+			Sphere* now = sp;
+			if (sp != NULL)
+				hit = now->hit(P0);
+				while (hit != NULL);	// finds the closest hit
+				{
+					now = hit->obj;
+					if (hit->hit.Magnitude() > surf->hit.Magnitude)
+					{
+						delete surf;
+						surf = hit;
+					}
+					else
+					{
+						delete hit;
+					}
+					hit = now->hit(P0);
+				}
+			
+			// Image processing
+			Pixel p;
+			img->GetPixel(i, j) = p;
+		}
+	}
+
+	delete d_u;
+	delete u_u;
+	delete S;
+	delete s_u;
 
 	return 0;
 }

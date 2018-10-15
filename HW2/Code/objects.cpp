@@ -56,7 +56,9 @@ intersect* sphere::hit(Ray* ray){
         printf("tc %f, tf %f\n", t_close, t_far);
     #endif
 
-    Vec3 P = ray->o + (t_close * *ray->d.UnitVector());
+    Vec3* temp = ray->d.UnitVector();
+    Vec3 P = ray->o + (t_close * *temp);
+    delete temp;
 
     intersect* hit = new intersect(P.x, P.y, P.z, this);
     return hit;
