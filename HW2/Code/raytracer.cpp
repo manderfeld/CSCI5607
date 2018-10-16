@@ -264,21 +264,39 @@ int main(int argc, char* argv[]){
 			}
 
 			Pixel p = img->GetPixel(i, j);
-			if (hit != NULL) // HIT
+			while (hit != NULL) // HIT
 			{
-				printf("HIT (%f,%f,%f)\n", hit->hit.x, hit->hit.y, hit->hit.z);
-				now = hit->obj;
+				// printf("HIT (%f,%f,%f)\n", hit->hit.x, hit->hit.y, hit->hit.z);
+				if (surf == NULL)
+					surf = hit;
+				else
+				{
+					Vec3 measure1 = hit->hit - cam->O;
+					Vec3 measure2 = surf->hit - cam->O;
+					if(measure1.Magnitude() < measure2.Magnitude())
+						surf = hit;
+				}
+				now = hit->obj->next;
+				if (now == NULL)
+					break;
+				
+				hit = now->hit(P0);
+				/*
+				p.r = 255;
+				p.g = 0;
+				p.b = 0;
+				p.a = 255;*/
+			}
+
+			if (surf != NULL)
+			{
+				now = surf->obj;
 				material* color = now->mat;
 				p.r = 255 * color->ar;
 				p.g = 255 * color->ag;
 				p.b = 255 * color->ab;
 
 				p.a = 255;
-				/*
-				p.r = 255;
-				p.g = 0;
-				p.b = 0;
-				p.a = 255;*/
 			}
 			else 			 // MISS
 			{
