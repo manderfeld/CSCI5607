@@ -294,14 +294,37 @@ int main(int argc, char* argv[]){
 			{
 				Vec3 vhit(surf->hit.x, surf->hit.y, surf->hit.z); // Position that you hit
 				now = surf->obj; // Object that you hit
+				material* color = now->mat;
 
-				// Lambertian shading stuff
+				// pixel values, if no lighting info, same as background
+				float r = p.r;
+				float g = p.g;
+				float b = p.b;
+				// ambient
+					float ar = 0.0;
+					float ag = 0.0;
+					float ab = 0.0; // ambient
+				// diffuse (Lambertian)
+					float dr = 0.0;
+					float dg = 0.0;
+					float db = 0.0;
+				// specular (Phong)
+					float sr = 0.0;
+					float sg = 0.0;
+					float sb = 0.0;
+
+				// ambient light
+				ar = mat->ar*al_r;
+				ag = mat->ag*al_g;
+				ab = mat->ab*al_b;
+
+				// Labmertian and Phong
 				// RIGHT NOW, assuming one point light
-				float r, g, b;
-
+				// TODO: Multiple point lights!
 				if (pl_list.begin() != pl_list.end())
 				{
-					PointLight* pl = pl_list[0];
+					// LAMBERTIAN
+					PointLight* pl = pl_list[0]; // look at first point light
 
 					Vec3 n = vhit - now->O; // normal
 					Vec3* n_n = n.UnitVector(); // unit vector version of the normal vector
@@ -315,21 +338,38 @@ int main(int argc, char* argv[]){
 						atten = 0;
 					}
 
-					material* color = now->mat;
-					r = (mat->dr) * (pl->r) * atten;
-					g = (mat->dg) * (pl->g) * atten;
-					b = (mat->db) * (pl->b) * atten;
-				}
-				else
-				{
-					r = (mat->ar);
-					g = (mat->ag);
-					b = (mat->ab);
+					dr = (mat->dr) * (pl->r) * atten;
+					dg = (mat->dg) * (pl->g) * atten;
+					db = (mat->db) * (pl->b) * atten;
+
+					// PHONG
+					// we will use the Vec3* l_n n_n from before (light and normal vectors)
+					// Is = ks *( pow(dotProd(V,R),n) * Il)
+					Vec3 r = (2 * dotProd(*n_n, *l_n)) * *n_n - *l_n;
+					//float rmag = r.Magnitude();
+					//printf("rmag: %f\n", rmag);
+
+					// -1.0 * *V because want FROM intersectino TO eye (not other way around)
+					float n_dot_h = dotProd(-1.0 * *V, r);
+					if (n_dot_h < 0)
+					{
+						n_dot_h = 0;
+					}
+
+					sr = (mat->sr) * pow( n_dot_h ,mat->ns) * pl->r;
+					sg = (mat->sg) * pow( n_dot_h ,mat->ns) * pl->g;
+					sb = (mat->sb) * pow( n_dot_h ,mat->ns) * pl->b;
 				}
 
+				// Do ambient, diffuse, and specular all at once!
+				r = ar + dr + sr;
+				g = ag + dg + sg;
+				b = ab + db + sb;
 
-				//printf("HIT (%f,%f,%f)\n", hit->hit.x, hit->hit.y, hit->hit.z);
-				
+				r = (r > 1) ? 1 : r;
+				g = (g > 1) ? 1 : g;
+				b = (b > 1) ? 1 : b;
+	
 				p.r = 255 * r;
 				p.g = 255 * g;
 				p.b = 255 * b;
@@ -338,32 +378,9 @@ int main(int argc, char* argv[]){
 			else 			 // MISS
 			{
 				// Miss, don't change anything because it's the background
-				/*
-				//printf("MISS\n");
-				p.r = 0;
-				p.g = 255;
-				p.b = 0;
-				p.a = 255;
-				*/
 			}
-				/*while (hit != NULL)
-				;	// finds the closest hit
-				{
-					now = hit->obj;
-					if (hit->hit.Magnitude() > surf->hit.Magnitude())
-					{
-						delete surf;
-						surf = hit;
-					}
-					else
-					{
-						delete hit;
-					}
-					hit = now->hit(P0);
-				}*/
 			
 			// Image processing
-			//Pixel p;
 			img->GetPixel(i, j) = p;
 		}
 	}
