@@ -31,7 +31,10 @@ int main(int argc, char* argv[]){
 	Sphere* sp = NULL; //= new Sphere();
 	string line;
 	material* mat = new material(); // default material
+	// TODO: multiple materials
 	int md = 5; 					// default max depth
+	
+	// Camera
 	// Camera default values
 		float px = 0.0;
 		float py = 0.0;
@@ -47,14 +50,17 @@ int main(int argc, char* argv[]){
 
 	// Lighting
 	// Directional light
-	float dl_r, dl_g, dl_b, dl_x, dl_y, dl_z;
+		float dl_r, dl_g, dl_b, dl_x, dl_y, dl_z;
+		vector<Light*> dl_list;
 	// Point light
-	float pl_r, pl_g, pl_b, pl_x, pl_y, pl_z;
-	vector<PointLight*> pl_list;	// vector to keep track of (possibly) multiple point lights
+		float pl_r, pl_g, pl_b, pl_x, pl_y, pl_z;
+		vector<Light*> pl_list;
 	// Spot light
-	float sl_r, sl_g, sl_b, sl_px, sl_py, sl_pz, sl_dx, sl_dy, sl_dz, sl_a1, sl_a2;
+		float sl_r, sl_g, sl_b, sl_px, sl_py, sl_pz, sl_dx, sl_dy, sl_dz, sl_a1, sl_a2;
+		vector<Light*> sl_list;
 	// Ambient light
-	float al_r = 0, al_g = 0, al_b = 0;
+		float al_r = 0, al_g = 0, al_b = 0;
+	
 	cout << argv[1] << endl;
 
 	// open the file containing the scene description
@@ -150,37 +156,39 @@ int main(int argc, char* argv[]){
 		else if (command == "directional_light")
 		{
 		//If the command is a directional light command
-			//float dl_r, dl_g, dl_b, dl_x, dl_y, dl_z;
 			input >> dl_r >> dl_g >> dl_b >> dl_x >> dl_y >> dl_z;
 			printf("Directional light directed at (%f,%f,%f) with color of (%f,%f,%f)\n", dl_x, dl_y, dl_z, dl_r, dl_g, dl_b);
+			Light* dl = new Light(dl_r, dl_g, dl_b, dl_x, dl_y, dl_z);
+			dl_list.push_back(dl);
 		}
 		else if (command == "point_light")
 		{
 		//If the command is a point light command
-			//float pl_r, pl_g, pl_b, pl_x, pl_y, pl_z;
 			input >> pl_r >> pl_g >> pl_b >> pl_x >> pl_y >> pl_z;
 			printf("Point light at position (%f,%f,%f) with color of (%f,%f,%f)\n", pl_x, pl_y, pl_z, pl_r, pl_g, pl_b);
-			PointLight* pl = new PointLight(pl_r, pl_g, pl_b, pl_x, pl_y, pl_z);
+			Light* pl = new Light(pl_r, pl_g, pl_b, pl_x, pl_y, pl_z);
 			pl_list.push_back(pl);
 		}
 		else if (command == "spot_light")
 		{
 		//If the command is a spot light command
-			//float sl_r, sl_g, sl_b, sl_px, sl_py, sl_pz, sl_dx, sl_dy, sl_dz, sl_a1, sl_a2;
 			input >> sl_r >> sl_g >> sl_b >> sl_px >> sl_py >> sl_pz >> sl_dx >> sl_dy >> sl_dz >> sl_a1 >> sl_a2;
 			printf("Spot light at position (%f,%f,%f) with color of (%f,%f,%f), direction (%f,%f,%f), and angles %f, and %f\n", sl_px, sl_py, sl_pz, sl_r, sl_g, sl_b, sl_dx, sl_dy, sl_dz, sl_a1, sl_a2);
+			Light* sl = new Light(sl_r, sl_g, sl_b, sl_px, sl_py, sl_pz);
+			sl_list.push_back(sl);
 		}
 		else if (command == "ambient_light")
 		{
 		//If the command is an ambient light command
-			//float al_r = 0, al_g = 0, al_b = 0;
 			input >> al_r >> al_g >> al_b;
 			printf("Ambient light color of (%f,%f,%f)\n", al_r, al_g, al_b);
 		}
 		else if(command == "max_depth")
 		{
-			//input >> md;
-			//md = 
+			int mdi;
+			input >> mdi;
+			printf("Max depth is %d", mdi);
+			md = mdi;
 		}
 		else
 		{
@@ -189,38 +197,6 @@ int main(int argc, char* argv[]){
 			//cout << "WARNING. Do not know command: " << command << endl;
 		}
 	}
-
-
-	/////////////////
-	// Debug stuff //
-	/////////////////
-	/*
-	#ifdef DEBUG
-		Vec3* a = new Vec3(1,2,3);
-		Vec3* anormal = a->UnitVector();
-
-		float mag = anormal->Magnitude();
-		printf("mag: %f\n", mag);
-
-		delete a;
-		delete anormal;
-
-		Vec3 o(px, py, pz), d(dx, dy, dz);
-		Ray* r = new Ray(&o, &d);
-		// Ray* r(px, py, pz, dx, dy, dz);
-
-		intersect* surf = sp->hit(r);
-
-		if (surf != NULL)
-			printf("HIT (%f,%f,%f)\n", surf->hit.x, surf->hit.y, surf->hit.z);
-		else
-			printf("MISS\n");
-
-		delete r;
-	#endif
-	*/
-	/////////////////
-	/////////////////
 
 	char* name = (char*)c; // name of the image (convert const char* to char*)
 	Image *img = new Image(w, h);
@@ -240,14 +216,7 @@ int main(int argc, char* argv[]){
 
 	D = h / (2 * tanf(cam->ha * M_PI/180.0f)) * *d_u;
 
-	printf("Unit d: %f,%f,%f\n", D.x, D.y, D.z);
-
-// Debugging stuff
-	//D = 240.0 * *d_u;
-	//float storeTan = h / (2 * tanf(cam->ha * M_PI/180.0f));
-	//D = 153.133545 * *d_u;
-	//printf("value tan: %f\t%f\n", (h / (2 * tanf(cam->ha * M_PI/180.0f))), storeTan);
-	//printf("value arctan: %f\n", (h / (2 * atanf(cam->ha * 2 * M_PI))));
+	//printf("Unit d: %f,%f,%f\n", D.x, D.y, D.z);
 
 	for (int i = 0; i < w; i++)
 	{
@@ -323,42 +292,47 @@ int main(int argc, char* argv[]){
 				// TODO: Multiple point lights!
 				if (pl_list.begin() != pl_list.end())
 				{
-					// LAMBERTIAN
-					PointLight* pl = pl_list[0]; // look at first point light
-
-					Vec3 n = vhit - now->O; // normal
-					Vec3* n_n = n.UnitVector(); // unit vector version of the normal vector
-					
-					Vec3 l = pl->position - vhit;
-					Vec3* l_n = l.UnitVector();
-
-					float atten = dotProd(*n_n, *l_n); // attenuation
-					if ( atten < 0)
+					vector<Light*>:: iterator i;
+					for (i = pl_list.begin(); i != pl_list.end(); i++)
 					{
-						atten = 0;
+						// LAMBERTIAN
+						Light* pl = (*i);
+						//Light* pl = pl_list[i]; // look at first point light
+
+						Vec3 n = vhit - now->O; // normal
+						Vec3* n_n = n.UnitVector(); // unit vector version of the normal vector
+						
+						Vec3 l = pl->position - vhit;
+						Vec3* l_n = l.UnitVector();
+
+						float atten = dotProd(*n_n, *l_n); // attenuation
+						if ( atten < 0)
+						{
+							atten = 0;
+						}
+
+						dr += (color->dr) * (pl->r) * atten;
+						dg += (color->dg) * (pl->g) * atten;
+						db += (color->db) * (pl->b) * atten;
+
+						// PHONG
+						// we will use the Vec3* l_n n_n from before (light and normal vectors)
+						// Is = ks *( pow(dotProd(V,R),n) * Il)
+						Vec3 r = (2 * dotProd(*n_n, *l_n)) * *n_n - *l_n;
+						//float rmag = r.Magnitude();
+						//printf("rmag: %f\n", rmag);
+
+						// -1.0 * *V because want FROM intersectino TO eye (not other way around)
+						float n_dot_h = dotProd(-1.0 * *V, r);
+						if (n_dot_h < 0)
+						{
+							n_dot_h = 0;
+						}
+
+						sr += (color->sr) * pow( n_dot_h ,color->ns) * pl->r;
+						sg += (color->sg) * pow( n_dot_h ,color->ns) * pl->g;
+						sb += (color->sb) * pow( n_dot_h ,color->ns) * pl->b;
 					}
-
-					dr = (color->dr) * (pl->r) * atten;
-					dg = (color->dg) * (pl->g) * atten;
-					db = (color->db) * (pl->b) * atten;
-
-					// PHONG
-					// we will use the Vec3* l_n n_n from before (light and normal vectors)
-					// Is = ks *( pow(dotProd(V,R),n) * Il)
-					Vec3 r = (2 * dotProd(*n_n, *l_n)) * *n_n - *l_n;
-					//float rmag = r.Magnitude();
-					//printf("rmag: %f\n", rmag);
-
-					// -1.0 * *V because want FROM intersectino TO eye (not other way around)
-					float n_dot_h = dotProd(-1.0 * *V, r);
-					if (n_dot_h < 0)
-					{
-						n_dot_h = 0;
-					}
-
-					sr = (color->sr) * pow( n_dot_h ,color->ns) * pl->r;
-					sg = (color->sg) * pow( n_dot_h ,color->ns) * pl->g;
-					sb = (color->sb) * pow( n_dot_h ,color->ns) * pl->b;
 				}
 
 				// Do ambient, diffuse, and specular all at once!
@@ -385,6 +359,8 @@ int main(int argc, char* argv[]){
 		}
 	}
 
+	//Image* ret = img->Resample();
+
 	delete d_u;
 	delete u_u;
 	delete S;
@@ -393,6 +369,6 @@ int main(int argc, char* argv[]){
 // TODO: go through pl_list and delete the vectors in the list and then delete the list
 
 	img->Write(name);
-
+	//ret->Write(name);
 	return 0;
 }

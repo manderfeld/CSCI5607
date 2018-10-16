@@ -1,5 +1,5 @@
 #Simple Sphere Scene
-#camera 0 0 0 0 0 1 0 1 0 45
+#Green sphere with TWO point lights!
 film_resolution 1000 1000
 #output_image raytraced.bmp
 
@@ -7,6 +7,7 @@ film_resolution 1000 1000
 #material 0 0 0 1 1 1 0 0 0 5 0 0 0 1
 material 0 0 0 0 .7 0 0 0 0 16 .9 .9 .9 1.1
 sphere 0 0 5 1
-point_light 1 1 1 1 5 0
+point_light .75 .75 .75 1 5 0
+point_light 1 1 1 1 -5 10
 
 max_depth 5
