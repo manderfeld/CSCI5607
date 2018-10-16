@@ -57,7 +57,7 @@ intersect* Sphere::hit(Ray* ray){
         if(next == NULL)
             return NULL;
         else
-            next->hit(ray);
+            return next->hit(ray);
         
         // return NULL;
     }

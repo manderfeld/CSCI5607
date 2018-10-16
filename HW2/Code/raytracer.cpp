@@ -222,7 +222,7 @@ int main(int argc, char* argv[]){
 	if (cam == NULL)
 		cam = new Camera;
 
-	Vec3 V, pos;	// V is the directional vector of the current ray, pos is the current pixel position
+	Vec3 *V, pos;	// V is the directional vector of the current ray, pos is the current pixel position
 	Vec3 D; 		// D is the direction vector from the camera augmented to fit the trigonometry for the calculation of V
 	Vec3* d_u = cam->D.UnitVector();	// *_u denote unit vector
 	Vec3* u_u = cam->U.UnitVector();
@@ -232,6 +232,8 @@ int main(int argc, char* argv[]){
 	Ray* P0 = new Ray();
 
 	D = h / (2 * tanf(cam->ha * M_PI/180.0f)) * *d_u;
+
+	printf("Unit d: %f,%f,%f\n", D.x, D.y, D.z);
 
 // Debugging stuff
 	//D = 240.0 * *d_u;
@@ -248,11 +250,11 @@ int main(int argc, char* argv[]){
 			xpos = w/2.0 - i;
 			ypos = h/2.0 - j;
 			pos = cam->O + D + (ypos * *u_u) + (xpos * *s_u);
-			V = pos - cam->O;
+			V = (pos - cam->O).UnitVector();
 
 			// Use V to find hits
 			P0->o = cam->O;
-			P0->d = V;
+			P0->d = *V;
 			intersect* surf = NULL, *hit = NULL;
 			Sphere* now = sp;
 			if (sp != NULL)
