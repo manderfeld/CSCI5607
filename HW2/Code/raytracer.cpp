@@ -273,24 +273,6 @@ int main(int argc, char* argv[]){
 			Pixel p = img->GetPixel(i, j);
 			while (hit != NULL) // HIT
 			{
-//LAMBERTIAN SHADING NEED TO MERGE
-        /*
-				Vec3 vhit(hit->hit.x, hit->hit.y, hit->hit.z); // Position that you hit
-				now = hit->obj; // Object that you hit
-
-				// Lambertian shading stuff
-				// RIGHT NOW, assuming one point light
-
-				float r, g, b;
-
-				if (pl_list.begin() != pl_list.end())
-				{
-					PointLight* pl = pl_list[0];
-
-					Vec3 n = vhit - now->O; // normal
-					Vec3* n_n = n.UnitVector(); // unit vector version of the normal vector
-          */
-
 				// printf("HIT (%f,%f,%f)\n", hit->hit.x, hit->hit.y, hit->hit.z);
 				if (surf == NULL)
 					surf = hit;
@@ -306,22 +288,24 @@ int main(int argc, char* argv[]){
 					break;
 				
 				hit = now->hit(P0);
-				/*
-				p.r = 255;
-				p.g = 0;
-				p.b = 0;
-				p.a = 255;*/
 			}
 
 			if (surf != NULL)
 			{
-				now = surf->obj;
-				material* color = now->mat;
-				p.r = 255 * color->ar;
-				p.g = 255 * color->ag;
-				p.b = 255 * color->ab;
-// LAMBERTIAN SHADING NEED TO MERGE
-/*
+				Vec3 vhit(surf->hit.x, surf->hit.y, surf->hit.z); // Position that you hit
+				now = surf->obj; // Object that you hit
+
+				// Lambertian shading stuff
+				// RIGHT NOW, assuming one point light
+				float r, g, b;
+
+				if (pl_list.begin() != pl_list.end())
+				{
+					PointLight* pl = pl_list[0];
+
+					Vec3 n = vhit - now->O; // normal
+					Vec3* n_n = n.UnitVector(); // unit vector version of the normal vector
+					
 					Vec3 l = pl->position - vhit;
 					Vec3* l_n = l.UnitVector();
 
@@ -350,7 +334,6 @@ int main(int argc, char* argv[]){
 				p.g = 255 * g;
 				p.b = 255 * b;
 				p.a = 255;
-*/
 			}
 			else 			 // MISS
 			{
