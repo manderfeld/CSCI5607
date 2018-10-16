@@ -314,9 +314,9 @@ int main(int argc, char* argv[]){
 					float sb = 0.0;
 
 				// ambient light
-				ar = mat->ar*al_r;
-				ag = mat->ag*al_g;
-				ab = mat->ab*al_b;
+				ar = color->ar*al_r;
+				ag = color->ag*al_g;
+				ab = color->ab*al_b;
 
 				// Labmertian and Phong
 				// RIGHT NOW, assuming one point light
@@ -338,9 +338,9 @@ int main(int argc, char* argv[]){
 						atten = 0;
 					}
 
-					dr = (mat->dr) * (pl->r) * atten;
-					dg = (mat->dg) * (pl->g) * atten;
-					db = (mat->db) * (pl->b) * atten;
+					dr = (color->dr) * (pl->r) * atten;
+					dg = (color->dg) * (pl->g) * atten;
+					db = (color->db) * (pl->b) * atten;
 
 					// PHONG
 					// we will use the Vec3* l_n n_n from before (light and normal vectors)
@@ -356,9 +356,9 @@ int main(int argc, char* argv[]){
 						n_dot_h = 0;
 					}
 
-					sr = (mat->sr) * pow( n_dot_h ,mat->ns) * pl->r;
-					sg = (mat->sg) * pow( n_dot_h ,mat->ns) * pl->g;
-					sb = (mat->sb) * pow( n_dot_h ,mat->ns) * pl->b;
+					sr = (color->sr) * pow( n_dot_h ,color->ns) * pl->r;
+					sg = (color->sg) * pow( n_dot_h ,color->ns) * pl->g;
+					sb = (color->sb) * pow( n_dot_h ,color->ns) * pl->b;
 				}
 
 				// Do ambient, diffuse, and specular all at once!
