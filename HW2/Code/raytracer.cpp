@@ -361,40 +361,41 @@ int main(int argc, char* argv[]){
   
   
 	//Image* ret = img->Resample();
-=======
-	// Image *im2 = new Image(w, h);
+	Image *im2 = new Image(w, h);
 
-	// for (int i = 0; i < w; i++)
-	// {
-	// 	for (int j = 0; j < h; j++)
-	// 	{
-	// 		float gaus[] = {0.058549832, 0.096532353, 0.058549832, 0.096532353, 0.159154943, 0.096532353, 0.058549832, 0.096532353, 0.058549832};
-	// 		float corner = 0.058549832;
-	// 		float side = 0.096532353;
-	// 		float center = 0.159154943;
-	// 		Pixel p;
-	// 		p.r = 0;
-	// 		p.g = 0;
-	// 		p.b = 0;
-	// 		p.a = 255;
-	// 		for (int k = -1; k <= 1; k++){
-	// 			for (int l = -1; l <= 1; l++){
-	// 				Pixel pix;
-	// 				if(i+k > 0 && i+k < w && j+l > 0 && j+1 < h)
-	// 				{
-	// 					pix = img->GetPixel(i + k, j + l);
-	// 				}
-	// 				else{
-	// 					pix = img->GetPixel(i, j);
-	// 				}
-	// 				p.r += pix.r * gaus[(k+1)*3 + l + 1];
-	// 				p.g += pix.g * gaus[(k+1)*3 + l + 1];
-	// 				p.b += pix.b* gaus[(k+1)*3 + l + 1];
-	// 			}
-	// 		}
-	// 		im2->GetPixel(i, j) = p;
-	// 	}
-	// }
+	for (int i = 0; i < w; i++)
+	{
+		for (int j = 0; j < h; j++)
+		{
+			float gaus[] = {0.058549832, 0.096532353, 0.058549832, 0.096532353, 0.159154943, 0.096532353, 0.058549832, 0.096532353, 0.058549832};
+			float corner = 0.058549832;
+			float side = 0.096532353;
+			float center = 0.159154943;
+			Pixel p;
+			p.r = 0;
+			p.g = 0;
+			p.b = 0;
+			p.a = 255;
+			for (int k = -1; k <= 1; k++){
+				for (int l = -1; l <= 1; l++){
+					Pixel pix;
+					if(i+k > 0 && i+k < w && j+l > 0 && j+1 < h)
+					{
+						pix = img->GetPixel(i + k, j + l);
+					}
+					else{
+						pix = img->GetPixel(i, j);
+					}
+					p.r += pix.r * gaus[(k+1)*3 + l + 1];
+					p.g += pix.g * gaus[(k+1)*3 + l + 1];
+					p.b += pix.b* gaus[(k+1)*3 + l + 1];
+				}
+			}
+			im2->GetPixel(i, j) = p;
+		}
+	}
+
+	im2->Write(name);
 
 	delete d_u;
 	delete u_u;
@@ -404,7 +405,7 @@ int main(int argc, char* argv[]){
 // TODO: go through pl_list and delete the vectors in the list and then delete the list
 
 	// cout << "name: " << name << endl;
-	img->Write(name);
+	//img->Write(name);
 	//ret->Write(name);
 	return 0;
 }
