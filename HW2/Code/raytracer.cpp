@@ -261,10 +261,10 @@ int main(int argc, char* argv[]){
 				hit = now->hit(P0);
 			}
 
-			Pixel p;
+			Pixel p = img->GetPixel(i, j);
 			if (hit != NULL) // HIT
 			{
-				//printf("HIT\n");
+				printf("HIT (%f,%f,%f)\n", hit->hit.x, hit->hit.y, hit->hit.z);
 				now = hit->obj;
 				material* color = now->mat;
 				p.r = 255 * color->ar;

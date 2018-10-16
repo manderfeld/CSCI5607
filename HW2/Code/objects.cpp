@@ -53,13 +53,13 @@ intersect* Sphere::hit(Ray* ray){
 //  Do we need to go to the next object?
 //	If d2 > r*r and we don't return, then we'll
 //	get a negative value in the squareroot (calculating thc)
-    	/*
+    	
         if(next == NULL)
             return NULL;
         else
             next->hit(ray);
-        */
-        return NULL;
+        
+        // return NULL;
     }
     float thc = sqrt((r * r) - d2);
     float t_close = tca - thc;
@@ -74,5 +74,7 @@ intersect* Sphere::hit(Ray* ray){
     delete temp;
 
     intersect* hit = new intersect(P.x, P.y, P.z, this);
+    // printf("Hit Material: %f, %f, %f\n", this->mat->ar, this->mat->ag, this->mat->ab);
+    // printf("object %a\n", this);
     return hit;
 }

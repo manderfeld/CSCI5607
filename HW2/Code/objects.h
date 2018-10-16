@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstddef>
 #include "vector.h"
+#include <cstdio>
 
 // for testing
 #include <iostream>
@@ -72,7 +73,9 @@ public:
         O.x = x;
         O.y = y;
         O.z = z;
-        this->mat = mat;
+        this->mat = new material();
+        *this->mat = *mat;
+        // printf("Material: %f, %f, %f\n", this->mat->ar, this->mat->ag, this->mat->ab);
     }
     ~Sphere();
     void add(float x, float y, float z, float r, material* mat);
