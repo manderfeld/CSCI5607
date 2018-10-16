@@ -271,8 +271,10 @@ int main(int argc, char* argv[]){
 			}
 
 			Pixel p = img->GetPixel(i, j);
-			if (hit != NULL) // HIT
+			while (hit != NULL) // HIT
 			{
+//LAMBERTIAN SHADING NEED TO MERGE
+        /*
 				Vec3 vhit(hit->hit.x, hit->hit.y, hit->hit.z); // Position that you hit
 				now = hit->obj; // Object that you hit
 
@@ -287,7 +289,39 @@ int main(int argc, char* argv[]){
 
 					Vec3 n = vhit - now->O; // normal
 					Vec3* n_n = n.UnitVector(); // unit vector version of the normal vector
+          */
 
+				// printf("HIT (%f,%f,%f)\n", hit->hit.x, hit->hit.y, hit->hit.z);
+				if (surf == NULL)
+					surf = hit;
+				else
+				{
+					Vec3 measure1 = hit->hit - cam->O;
+					Vec3 measure2 = surf->hit - cam->O;
+					if(measure1.Magnitude() < measure2.Magnitude())
+						surf = hit;
+				}
+				now = hit->obj->next;
+				if (now == NULL)
+					break;
+				
+				hit = now->hit(P0);
+				/*
+				p.r = 255;
+				p.g = 0;
+				p.b = 0;
+				p.a = 255;*/
+			}
+
+			if (surf != NULL)
+			{
+				now = surf->obj;
+				material* color = now->mat;
+				p.r = 255 * color->ar;
+				p.g = 255 * color->ag;
+				p.b = 255 * color->ab;
+// LAMBERTIAN SHADING NEED TO MERGE
+/*
 					Vec3 l = pl->position - vhit;
 					Vec3* l_n = l.UnitVector();
 
@@ -312,16 +346,11 @@ int main(int argc, char* argv[]){
 
 				//printf("HIT (%f,%f,%f)\n", hit->hit.x, hit->hit.y, hit->hit.z);
 				
-				
 				p.r = 255 * r;
 				p.g = 255 * g;
 				p.b = 255 * b;
 				p.a = 255;
-				/*
-				p.r = 255;
-				p.g = 0;
-				p.b = 0;
-				p.a = 255;*/
+*/
 			}
 			else 			 // MISS
 			{
