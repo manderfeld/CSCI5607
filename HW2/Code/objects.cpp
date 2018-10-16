@@ -3,7 +3,7 @@
 
 #define DEBUG
 
-PointLight::~PointLight()
+Light::~Light()
 {
 	
 }
