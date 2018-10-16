@@ -3,6 +3,7 @@
 #include "image.h"
 #include "vector.h"
 #include "objects.h"
+#include <vector>
 #include <cstdio>
 #include <iostream>
 #include <fstream>
@@ -45,9 +46,14 @@ int main(int argc, char* argv[]){
 	Camera* cam = NULL;
 
 	// Lighting
+	// Directional light
 	float dl_r, dl_g, dl_b, dl_x, dl_y, dl_z;
+	// Point light
 	float pl_r, pl_g, pl_b, pl_x, pl_y, pl_z;
+	vector<PointLight*> pl_list;	// vector to keep track of (possibly) multiple point lights
+	// Spot light
 	float sl_r, sl_g, sl_b, sl_px, sl_py, sl_pz, sl_dx, sl_dy, sl_dz, sl_a1, sl_a2;
+	// Ambient light
 	float al_r = 0, al_g = 0, al_b = 0;
 	cout << argv[1] << endl;
 
@@ -154,6 +160,8 @@ int main(int argc, char* argv[]){
 			//float pl_r, pl_g, pl_b, pl_x, pl_y, pl_z;
 			input >> pl_r >> pl_g >> pl_b >> pl_x >> pl_y >> pl_z;
 			printf("Point light at position (%f,%f,%f) with color of (%f,%f,%f)\n", pl_x, pl_y, pl_z, pl_r, pl_g, pl_b);
+			PointLight* pl = new PointLight(pl_r, pl_g, pl_b, pl_x, pl_y, pl_z);
+			pl_list.push_back(pl);
 		}
 		else if (command == "spot_light")
 		{
@@ -161,7 +169,6 @@ int main(int argc, char* argv[]){
 			//float sl_r, sl_g, sl_b, sl_px, sl_py, sl_pz, sl_dx, sl_dy, sl_dz, sl_a1, sl_a2;
 			input >> sl_r >> sl_g >> sl_b >> sl_px >> sl_py >> sl_pz >> sl_dx >> sl_dy >> sl_dz >> sl_a1 >> sl_a2;
 			printf("Spot light at position (%f,%f,%f) with color of (%f,%f,%f), direction (%f,%f,%f), and angles %f, and %f\n", sl_px, sl_py, sl_pz, sl_r, sl_g, sl_b, sl_dx, sl_dy, sl_dz, sl_a1, sl_a2);
-
 		}
 		else if (command == "ambient_light")
 		{
@@ -266,13 +273,49 @@ int main(int argc, char* argv[]){
 			Pixel p = img->GetPixel(i, j);
 			if (hit != NULL) // HIT
 			{
-				printf("HIT (%f,%f,%f)\n", hit->hit.x, hit->hit.y, hit->hit.z);
-				now = hit->obj;
-				material* color = now->mat;
-				p.r = 255 * color->ar;
-				p.g = 255 * color->ag;
-				p.b = 255 * color->ab;
+				Vec3 vhit(hit->hit.x, hit->hit.y, hit->hit.z); // Position that you hit
+				now = hit->obj; // Object that you hit
 
+				// Lambertian shading stuff
+				// RIGHT NOW, assuming one point light
+
+				float r, g, b;
+
+				if (pl_list.begin() != pl_list.end())
+				{
+					PointLight* pl = pl_list[0];
+
+					Vec3 n = vhit - now->O; // normal
+					Vec3* n_n = n.UnitVector(); // unit vector version of the normal vector
+
+					Vec3 l = pl->position - vhit;
+					Vec3* l_n = l.UnitVector();
+
+					float atten = dotProd(*n_n, *l_n); // attenuation
+					if ( atten < 0)
+					{
+						atten = 0;
+					}
+
+					material* color = now->mat;
+					r = (mat->dr) * (pl->r) * atten;
+					g = (mat->dg) * (pl->g) * atten;
+					b = (mat->db) * (pl->b) * atten;
+				}
+				else
+				{
+					r = (mat->ar);
+					g = (mat->ag);
+					b = (mat->ab);
+				}
+
+
+				//printf("HIT (%f,%f,%f)\n", hit->hit.x, hit->hit.y, hit->hit.z);
+				
+				
+				p.r = 255 * r;
+				p.g = 255 * g;
+				p.b = 255 * b;
 				p.a = 255;
 				/*
 				p.r = 255;
@@ -317,6 +360,8 @@ int main(int argc, char* argv[]){
 	delete u_u;
 	delete S;
 	delete s_u;
+
+// TODO: go through pl_list and delete the vectors in the list and then delete the list
 
 	img->Write(name);
 
