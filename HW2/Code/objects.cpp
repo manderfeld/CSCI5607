@@ -3,6 +3,11 @@
 
 #define DEBUG
 
+PointLight::~PointLight()
+{
+	
+}
+
 material::~material()
 {
 	

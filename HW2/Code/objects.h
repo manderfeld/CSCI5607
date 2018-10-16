@@ -14,6 +14,17 @@ using namespace std;
 #ifndef OBJECTS
 #define OBJECTS
 
+struct PointLight
+{
+    float r;
+    float g;
+    float b;
+    Vec3 position;
+
+    PointLight(float r, float g, float b, float x, float y, float z) : r(r), g(g), b(b), position(x, y, z) {}
+    ~PointLight();
+};
+
 class Camera
 {
 public:
