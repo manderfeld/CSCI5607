@@ -296,8 +296,7 @@ int main(int argc, char* argv[]){
 					for (i = pl_list.begin(); i != pl_list.end(); i++)
 					{
 						// LAMBERTIAN
-						Light* pl = (*i);
-						//Light* pl = pl_list[i]; // look at first point light
+						Light* pl = (*i); // look at first point light
 
 						Vec3 n = vhit - now->O; // normal
 						Vec3* n_n = n.UnitVector(); // unit vector version of the normal vector
@@ -305,15 +304,18 @@ int main(int argc, char* argv[]){
 						Vec3 l = pl->position - vhit;
 						Vec3* l_n = l.UnitVector();
 
-						float atten = dotProd(*n_n, *l_n); // attenuation
-						if ( atten < 0)
+						float nl = dotProd(*n_n, *l_n); // dotProd(normal unit vector, light unit vector)
+						if ( nl < 0)
 						{
-							atten = 0;
+							nl = 0;
 						}
 
-						dr += (color->dr) * (pl->r) * atten;
-						dg += (color->dg) * (pl->g) * atten;
-						db += (color->db) * (pl->b) * atten;
+						float d2 = dotProd(l, l); // attenuation: distance from light squared
+						//printf("d2: %f\n", d2); 
+
+						dr += (color->dr)/d2 * (pl->r) * nl;
+						dg += (color->dg)/d2 * (pl->g) * nl;
+						db += (color->db)/d2 * (pl->b) * nl;
 
 						// PHONG
 						// we will use the Vec3* l_n n_n from before (light and normal vectors)
@@ -322,16 +324,16 @@ int main(int argc, char* argv[]){
 						//float rmag = r.Magnitude();
 						//printf("rmag: %f\n", rmag);
 
-						// -1.0 * *V because want FROM intersectino TO eye (not other way around)
+						// -1.0 * *V becau se want FROM intersectino TO eye (not other way around)
 						float n_dot_h = dotProd(-1.0 * *V, r);
 						if (n_dot_h < 0)
 						{
 							n_dot_h = 0;
 						}
 
-						sr += (color->sr) * pow( n_dot_h ,color->ns) * pl->r;
-						sg += (color->sg) * pow( n_dot_h ,color->ns) * pl->g;
-						sb += (color->sb) * pow( n_dot_h ,color->ns) * pl->b;
+						sr += (color->sr)/d2 * pow( n_dot_h ,color->ns) * pl->r;
+						sg += (color->sg)/d2 * pow( n_dot_h ,color->ns) * pl->g;
+						sb += (color->sb)/d2 * pow( n_dot_h ,color->ns) * pl->b;
 					}
 				}
 
@@ -361,6 +363,7 @@ int main(int argc, char* argv[]){
   
   
 	//Image* ret = img->Resample();
+	/*
 	Image *im2 = new Image(w, h);
 
 	for (int i = 0; i < w; i++)
@@ -394,8 +397,9 @@ int main(int argc, char* argv[]){
 			im2->GetPixel(i, j) = p;
 		}
 	}
+	*/
 
-	im2->Write(name);
+	//im2->Write(name);
 
 	delete d_u;
 	delete u_u;
@@ -405,7 +409,7 @@ int main(int argc, char* argv[]){
 // TODO: go through pl_list and delete the vectors in the list and then delete the list
 
 	// cout << "name: " << name << endl;
-	//img->Write(name);
+	img->Write(name);
 	//ret->Write(name);
 	return 0;
 }
