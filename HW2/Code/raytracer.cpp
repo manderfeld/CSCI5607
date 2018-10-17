@@ -187,7 +187,7 @@ int main(int argc, char* argv[]){
 		{
 			int mdi;
 			input >> mdi;
-			printf("Max depth is %d", mdi);
+			printf("Max depth is %d\n", mdi);
 			md = mdi;
 		}
 		else
@@ -304,6 +304,18 @@ int main(int argc, char* argv[]){
 						Vec3 l = pl->position - vhit;
 						Vec3* l_n = l.UnitVector();
 
+						Ray* light = new Ray();	// ray for shadow checking
+						light->o = vhit + (0.1 * *l_n);	// move the ray's origin very slightly towards the light source to avoid shadow acne
+						light->d = *l_n;
+						intersect* shadow = sp->hit(light);	// check if there is an object between object and light source.
+						delete light;
+						if (shadow != NULL)
+						{
+							delete shadow;
+							// cout << "Shadow" << endl;
+							continue;
+						}
+
 						float nl = dotProd(*n_n, *l_n); // dotProd(normal unit vector, light unit vector)
 						if ( nl < 0)
 						{
@@ -334,6 +346,8 @@ int main(int argc, char* argv[]){
 						sr += (color->sr)/d2 * pow( n_dot_h ,color->ns) * pl->r;
 						sg += (color->sg)/d2 * pow( n_dot_h ,color->ns) * pl->g;
 						sb += (color->sb)/d2 * pow( n_dot_h ,color->ns) * pl->b;
+						delete n_n;
+						delete l_n;
 					}
 				}
 
@@ -350,12 +364,14 @@ int main(int argc, char* argv[]){
 				p.g = 255 * g;
 				p.b = 255 * b;
 				p.a = 255;
+				delete surf;
 			}
 			else 			 // MISS
 			{
 				// Miss, don't change anything because it's the background
 			}
 			
+			delete V;
 			// Image processing
 			img->GetPixel(i, j) = p;
 		}
