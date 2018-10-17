@@ -67,8 +67,28 @@ intersect* Sphere::hit(Ray* ray){
         // return NULL;
     }
     float thc = sqrt((r * r) - d2);
+
     float t_close = tca - thc;
     float t_far = tca + thc;
+
+    if (t_close < t_far) // if t_far is actually closer
+    {
+        // swap them
+        float temp = t_far;
+        t_far = t_close;
+        t_close = t_far;
+        if (t_close < 0) // if less than zero, it's a miss
+        {
+            if(next == NULL)
+            {
+                return NULL;
+            }
+            else
+            {
+                return next->hit(ray);
+            }
+        }
+    }
 
     #ifdef DEBUG
         //printf("tc %f, tf %f\n", t_close, t_far);
