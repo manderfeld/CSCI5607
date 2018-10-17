@@ -94,6 +94,13 @@ intersect* Sphere::hit(Ray* ray){
         //printf("tc %f, tf %f\n", t_close, t_far);
     #endif
 
+    if (t_close < 0 && t_far < 0){
+        if(next == NULL)
+            return NULL;
+        else
+            return next->hit(ray);
+    }
+
     Vec3* temp = ray->d.UnitVector();
     Vec3 P = ray->o + (t_close * *temp);
     delete temp;
