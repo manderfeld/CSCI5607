@@ -10,6 +10,7 @@
 #include <string>
 #include <cmath>
 #include <cstddef>
+#include <sys/time.h>
 
 #define DEBUG
 
@@ -199,7 +200,6 @@ int main(int argc, char* argv[]){
 	}
 
 	char* name = (char*)c; // name of the image (convert const char* to char*)
-	
 	Image *img = new Image(w, h);
 	img->Fill(rgb[0], rgb[1], rgb[2]);
 
@@ -215,7 +215,7 @@ int main(int argc, char* argv[]){
 	float xpos, ypos;
 	Ray* P0 = new Ray();
 
-	D = (h) / (2 * tanf(cam->ha * M_PI/180.0f)) * *d_u;
+	D = h / (2 * tanf(cam->ha * M_PI/180.0f)) * *d_u;
 
 	//printf("Unit d: %f,%f,%f\n", D.x, D.y, D.z);
 
@@ -225,8 +225,8 @@ int main(int argc, char* argv[]){
 		for (int j = 0; j < h; j++)
 		{	
 			// find V
-			xpos = (w)/2.0 - i;
-			ypos = (h)/2.0 - j;
+			xpos = w/2.0 - i;
+			ypos = h/2.0 - j;
 			pos = cam->O + D + (ypos * *u_u) + (xpos * *s_u);
 			V = (pos - cam->O).UnitVector();
 
@@ -306,8 +306,16 @@ int main(int argc, char* argv[]){
 						Vec3 l = pl->position - vhit;
 						Vec3* l_n = l.UnitVector();
 
+						/////////////
+						// Shadows //
+						/////////////
+
+						struct timeval tp;
+						gettimeofday(&tp, NULL);
+						long int ms = tp.tv_sec * 1000 + tp.tv_usec / 1000;
+
 						Ray* light = new Ray();	// ray for shadow checking
-						light->o = vhit + (0.1 * *l_n);	// move the ray's origin very slightly towards the light source to avoid shadow acne
+						light->o = vhit + (0.00001 * *l_n);	// move the ray's origin very slightly towards the light source to avoid shadow acne
 						light->d = *l_n;
 						intersect* shadow = sp->hit(light);	// check if there is an object between object and light source.
 						delete light;
@@ -352,6 +360,15 @@ int main(int argc, char* argv[]){
 						delete l_n;
 					}
 				}
+
+				////////////////
+				// Reflection //
+				////////////////
+				float rr = 0, rg = 0, rb = 0;
+				float tr = 0, tg = 0, tb = 0;
+
+				
+
 
 				// Do ambient, diffuse, and specular all at once!
 				r = ar + dr + sr;
@@ -428,10 +445,6 @@ int main(int argc, char* argv[]){
 
 	// cout << "name: " << name << endl;
 	img->Write(name);
-
-	//Image *dst = img->Scale(1, 1);
-	//dst->Write(name);
-
 	//ret->Write(name);
 	return 0;
 }
