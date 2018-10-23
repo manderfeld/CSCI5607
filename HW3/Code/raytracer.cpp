@@ -141,6 +141,27 @@ int main(int argc, char* argv[]){
 				vertices.push_back(vertex);
 			}
 		}
+		else if (command == "triangle")
+		{
+			int v1, v2, v3;
+			input >> v1 >> v2 >> v3;
+			if ( (v1<=vertices.size()) && (v2<=vertices.size()) && (v3<=vertices.size()) ) // check if these are valid vertices
+			{
+				printf("Triangle with vertices at index %d, %d, %d added\n", v1, v2, v3);
+				if (tr == NULL)
+				{
+					tr = new Triangle(vertices[v1], vertices[v2], vertices[v3], mat);
+				}
+				else
+				{
+					tr->add(vertices[v1], vertices[v2], vertices[v3], mat);
+				}
+			}
+			else
+			{
+				printf("Cannot add triangle! Not all vertices exist.\nLooking at vertices %d, %d, %d\nNumber of vertices: %lu\n", v1, v2, v3, vertices.size());
+			}
+		}
 		else if (command == "camera")
 		{
 		//If the command is a camera command
