@@ -10,6 +10,7 @@
 #include <string>
 #include <cmath>
 #include <cstddef>
+#include <sys/time.h>
 
 #define DEBUG
 
@@ -218,6 +219,7 @@ int main(int argc, char* argv[]){
 
 	//printf("Unit d: %f,%f,%f\n", D.x, D.y, D.z);
 
+	#pragma omp parallel for
 	for (int i = 0; i < w; i++)
 	{
 		for (int j = 0; j < h; j++)
@@ -304,6 +306,14 @@ int main(int argc, char* argv[]){
 						Vec3 l = pl->position - vhit;
 						Vec3* l_n = l.UnitVector();
 
+						/////////////
+						// Shadows //
+						/////////////
+
+						struct timeval tp;
+						gettimeofday(&tp, NULL);
+						long int ms = tp.tv_sec * 1000 + tp.tv_usec / 1000;
+
 						Ray* light = new Ray();	// ray for shadow checking
 						light->o = vhit + (0.1 * *l_n);	// move the ray's origin very slightly towards the light source to avoid shadow acne
 						light->d = *l_n;
@@ -350,6 +360,15 @@ int main(int argc, char* argv[]){
 						delete l_n;
 					}
 				}
+
+				////////////////
+				// Reflection //
+				////////////////
+				float rr = 0, rg = 0, rb = 0;
+				float tr = 0, tg = 0, tb = 0;
+
+				
+
 
 				// Do ambient, diffuse, and specular all at once!
 				r = ar + dr + sr;
