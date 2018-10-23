@@ -110,3 +110,28 @@ intersect* Sphere::hit(Ray* ray){
     // printf("object %a\n", this);
     return hit;
 }
+
+
+
+
+Triangle::~Triangle(){
+    if (mat != NULL)
+        delete mat;
+    if (next != NULL)
+        delete next;
+}
+
+void Triangle::add(Vec3 v1, Vec3 v2, Vec3 v3, material* mat)
+{
+    if (next == NULL){
+        next = new Triangle(v1, v2, v3, mat);
+    }
+    else{
+        next->add(v1, v2, v3, mat);
+    }
+    return;
+}
+
+Tintersect* Triangle::hit(Ray* ray)
+{
+}

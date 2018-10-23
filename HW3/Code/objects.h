@@ -108,4 +108,42 @@ public:
     }
 };
 
+// make a class object that sphere and triange inherit from
+// then we can iterate through a vector of objects or something
+
+class Tintersect;
+class Triangle
+{
+public:
+    Vec3 v1, v2, v3;
+    Vec3 O;
+    Triangle* next;
+    material* mat;
+
+    Triangle() : v1(0.0,0.0,0.0), v2(0.0,0.0,0.0), v3(0.0,0.0,0.0), next(NULL) {}
+    Triangle(Vec3 v1, Vec3 v2, Vec3 v3, material *mat) : v1(v1), v2(v2), v3(v3), next(NULL)
+    {
+        this->mat = new material();
+        *this->mat = *mat;
+    }
+    ~Triangle();
+    void add(Vec3 v1, Vec3 v2, Vec3 v3, material*mat);
+    Tintersect* hit(Ray* ray);
+};
+
+class Tintersect
+{
+public:
+    Triangle* obj;
+    Vec3 hit;
+
+    Tintersect(float x, float y, float z, Triangle* o)
+    {
+        hit.x = x;
+        hit.y = y;
+        hit.z = z;
+        obj = o;
+    }
+};
+
 #endif

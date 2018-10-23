@@ -30,6 +30,9 @@ int main(int argc, char* argv[]){
 	int h = 480; 					// default height
 	int rgb[] = {0, 0, 0};			// default backround RGB values
 	Sphere* sp = NULL; //= new Sphere();
+	int maxV;
+	vector<Vec3> vertices;
+	Triangle* tr = NULL;
 	string line;
 	material* mat = new material(); // default material
 	// TODO: multiple materials
@@ -113,6 +116,30 @@ int main(int argc, char* argv[]){
 			rgb[0] = r * 255;
 			rgb[1] = g * 255;
 			rgb[2] = b * 255;
+		}
+		else if (command == "max_vertices")
+		{
+		//If the command is a max_vertices command
+			int maxV_i;
+			input >> maxV_i;
+			printf("Max vertices: %d\n",maxV_i);
+			maxV = maxV_i;
+		}
+		else if (command == "vertex")
+		{
+		//If the command is a max_vertices command
+			if (maxV <= vertices.size())
+			{
+				printf("Cannot add another vertex! At max capacity :(\n");
+			}
+			else
+			{
+				float x,y,z;
+				input >> x >> y >> z;
+				printf("Vertex %lu (%f, %f, %f)\n", vertices.size()+1, x, y, z);
+				Vec3 vertex(x,y,z);
+				vertices.push_back(vertex);
+			}
 		}
 		else if (command == "camera")
 		{
@@ -219,7 +246,10 @@ int main(int argc, char* argv[]){
 
 	//printf("Unit d: %f,%f,%f\n", D.x, D.y, D.z);
 
-	#pragma omp parallel for
+/*************************************************
+ *	FOR SPHERES!!!!                              *
+ *************************************************/
+/*	#pragma omp parallel for
 	for (int i = 0; i < w; i++)
 	{
 		for (int j = 0; j < h; j++)
@@ -395,8 +425,200 @@ int main(int argc, char* argv[]){
 			img->GetPixel(i, j) = p;
 		}
 	}
+*/
+
+
+
+
+
+/*************************************************
+ *	FOR TRIANGLES!!!!                             *
+ *************************************************/
+	for (int i = 0; i < w; i++)
+	{
+		for (int j = 0; j < h; j++)
+		{	
+
+
+
+			/*
+			// find V
+			xpos = w/2.0 - i;
+			ypos = h/2.0 - j;
+			pos = cam->O + D + (ypos * *u_u) + (xpos * *s_u);
+			V = (pos - cam->O).UnitVector();
+
+			// Use V to find hits
+			P0->o = cam->O;
+			P0->d = *V;
+			intersect* surf = NULL, *hit = NULL;
+			Sphere* now = sp;
+			if (sp != NULL)
+			{
+				hit = NULL;
+				hit = now->hit(P0);
+			}
+
+			Pixel p = img->GetPixel(i, j);
+			while (hit != NULL) // HIT
+			{
+				// printf("HIT (%f,%f,%f)\n", hit->hit.x, hit->hit.y, hit->hit.z);
+				if (surf == NULL)
+					surf = hit;
+				else
+				{
+					Vec3 measure1 = hit->hit - cam->O;
+					Vec3 measure2 = surf->hit - cam->O;
+					if(measure1.Magnitude() < measure2.Magnitude())
+						surf = hit;
+				}
+				now = hit->obj->next;
+				if (now == NULL)
+					break;
+				
+				hit = now->hit(P0);
+			}
+
+			if (surf != NULL)
+			{
+				Vec3 vhit(surf->hit.x, surf->hit.y, surf->hit.z); // Position that you hit
+				now = surf->obj; // Object that you hit
+				material* color = now->mat;
+
+				// pixel values, if no lighting info, same as background
+				float r = p.r;
+				float g = p.g;
+				float b = p.b;
+				// ambient
+					float ar = 0.0;
+					float ag = 0.0;
+					float ab = 0.0; // ambient
+				// diffuse (Lambertian)
+					float dr = 0.0;
+					float dg = 0.0;
+					float db = 0.0;
+				// specular (Phong)
+					float sr = 0.0;
+					float sg = 0.0;
+					float sb = 0.0;
+
+				// ambient light
+				ar = color->ar*al_r;
+				ag = color->ag*al_g;
+				ab = color->ab*al_b;
+
+				// Labmertian and Phong
+				// RIGHT NOW, assuming one point light
+				// TODO: Multiple point lights!
+				if (pl_list.begin() != pl_list.end())
+				{
+					vector<Light*>:: iterator i;
+					for (i = pl_list.begin(); i != pl_list.end(); i++)
+					{
+						// LAMBERTIAN
+						Light* pl = (*i); // look at first point light
+
+						Vec3 n = vhit - now->O; // normal
+						Vec3* n_n = n.UnitVector(); // unit vector version of the normal vector
+						
+						Vec3 l = pl->position - vhit;
+						Vec3* l_n = l.UnitVector();
+
+						/////////////
+						// Shadows //
+						/////////////
+
+						struct timeval tp;
+						gettimeofday(&tp, NULL);
+						long int ms = tp.tv_sec * 1000 + tp.tv_usec / 1000;
+
+						Ray* light = new Ray();	// ray for shadow checking
+						light->o = vhit + (0.00001 * *l_n);	// move the ray's origin very slightly towards the light source to avoid shadow acne
+						light->d = *l_n;
+						intersect* shadow = sp->hit(light);	// check if there is an object between object and light source.
+						delete light;
+						if (shadow != NULL)
+						{
+							delete shadow;
+							// cout << "Shadow" << endl;
+							continue;
+						}
+
+						float nl = dotProd(*n_n, *l_n); // dotProd(normal unit vector, light unit vector)
+						if ( nl < 0)
+						{
+							nl = 0;
+						}
+
+						float d2 = dotProd(l, l); // attenuation: distance from light squared
+						//printf("d2: %f\n", d2); 
+
+						dr += (color->dr)/d2 * (pl->r) * nl;
+						dg += (color->dg)/d2 * (pl->g) * nl;
+						db += (color->db)/d2 * (pl->b) * nl;
+
+						// PHONG
+						// we will use the Vec3* l_n n_n from before (light and normal vectors)
+						// Is = ks *( pow(dotProd(V,R),n) * Il)
+						Vec3 r = (2 * dotProd(*n_n, *l_n)) * *n_n - *l_n;
+						//float rmag = r.Magnitude();
+						//printf("rmag: %f\n", rmag);
+
+						// -1.0 * *V becau se want FROM intersectino TO eye (not other way around)
+						float n_dot_h = dotProd(-1.0 * *V, r);
+						if (n_dot_h < 0)
+						{
+							n_dot_h = 0;
+						}
+
+						sr += (color->sr)/d2 * pow( n_dot_h ,color->ns) * pl->r;
+						sg += (color->sg)/d2 * pow( n_dot_h ,color->ns) * pl->g;
+						sb += (color->sb)/d2 * pow( n_dot_h ,color->ns) * pl->b;
+						delete n_n;
+						delete l_n;
+					}
+				}
+
+				////////////////
+				// Reflection //
+				////////////////
+				float rr = 0, rg = 0, rb = 0;
+				float tr = 0, tg = 0, tb = 0;
+
+				
+
+
+				// Do ambient, diffuse, and specular all at once!
+				r = ar + dr + sr;
+				g = ag + dg + sg;
+				b = ab + db + sb;
+
+				r = (r > 1) ? 1 : r;
+				g = (g > 1) ? 1 : g;
+				b = (b > 1) ? 1 : b;
+	
+				p.r = 255 * r;
+				p.g = 255 * g;
+				p.b = 255 * b;
+				p.a = 255;
+				delete surf;
+			}
+			else 			 // MISS
+			{
+				// Miss, don't change anything because it's the background
+			}
+			
+			delete V;
+			// Image processing
+			img->GetPixel(i, j) = p;
+			*/
+		}
+	}
   
   
+
+
+
 	//Image* ret = img->Resample();
 	/*
 	Image *im2 = new Image(w, h);
