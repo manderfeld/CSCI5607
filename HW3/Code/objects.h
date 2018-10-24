@@ -68,6 +68,48 @@ public:
     }
 };
 
+
+
+
+
+
+// WITH INHERITANCE, ETC
+class xIntersect;
+
+class xObject
+{
+public:
+    virtual xIntersect* hit(Ray* ray) = 0;
+};
+
+class xSphere : public xObject
+{
+};
+class xTriangle : public xObject
+{
+};
+class xIntersect
+{
+public:
+    xObject* obj;
+    Vec3 hit;
+    xIntersect(float x, float y, float z, xObject* o)
+    {
+        hit.x = x; hit.y = y; hit.z = z;
+        obj = o;
+    }
+};
+
+
+
+
+
+
+
+
+// WITHOUT INHERITANCE, ETC
+
+
 class intersect;
 
 class Sphere

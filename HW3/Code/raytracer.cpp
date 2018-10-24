@@ -507,9 +507,57 @@ int main(int argc, char* argv[]){
 /*************************************************
  *	FOR TRIANGLES!!!!                             *
  *************************************************/
-
-
 	for (int i = 0; i < w; i++)
+	{
+		for (int j = 0; j < h; j++)
+		{	
+			// find V
+			xpos = w/2.0 - i;
+			ypos = h/2.0 - j;
+			pos = cam->O + D + (ypos * *u_u) + (xpos * *s_u);
+			V = (pos - cam->O).UnitVector();
+
+			// Use V to find hits
+			P0->o = cam->O;
+			P0->d = *V;
+			Tintersect* surf = NULL, *hit = NULL;
+			Triangle* now = tr;
+			if (tr != NULL)
+			{
+				hit = NULL;
+				hit = now->hit(P0);
+			}
+
+			Pixel p = img->GetPixel(i, j);
+			if (hit != NULL) // HIT
+			{
+				printf("HIT (%f,%f,%f)\n", hit->hit.x, hit->hit.y, hit->hit.z);
+				now = hit->obj;
+				material* color = now->mat;
+				p.r = 255 * color->ar;
+				p.g = 255 * color->ag;
+				p.b = 255 * color->ab;
+
+				p.a = 255;
+				/*
+				p.r = 255;
+				p.g = 0;
+				p.b = 0;
+				p.a = 255;*/
+			}
+			else 			 // MISS
+			{
+			}
+			
+			// Image processing
+			//Pixel p;
+			img->GetPixel(i, j) = p;
+		}
+	}
+
+
+
+/*	for (int i = 0; i < w; i++)
 	{
 		for (int j = 0; j < h; j++)
 		{	
@@ -694,7 +742,7 @@ int main(int argc, char* argv[]){
 			// Image processing
 			img->GetPixel(i, j) = p;
 		}
-	}
+	}*/
 
 
 
