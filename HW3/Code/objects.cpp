@@ -134,13 +134,27 @@ void Triangle::add(Vec3 v1, Vec3 v2, Vec3 v3, Vec3 n, material* mat)
 
 Tintersect* Triangle::hit(Ray* ray)
 {
+//printf("in hit\n");
     Vec3 rayOrg = ray->o; // P
     Vec3 rayDir = ray->d; // d
 
     // Exit case 1
     // if ray and plane are parallel then they don't intersect!
-    if ( (dotProd(rayDir,n) == 0) || ((dotProd(rayDir,n) >= -0.001)&&(dotProd(rayDir,n) <= 0.001)) ) // if dot product is 0 or almost 0
+    if (dotProd(rayDir,n) == 0) // if dot product is 0
     {
+//printf("\tExit# 1 a\n");
+        if(next == NULL)
+        {
+            return NULL;
+        }
+        else
+        {
+            return next->hit(ray);
+        }
+    }
+    else if( fabs(dotProd(rayDir,n)) < 0.000001) // or almost 0
+    {
+//printf("\tExit# 1 b\n");
         if(next == NULL)
         {
             return NULL;
@@ -161,6 +175,7 @@ Tintersect* Triangle::hit(Ray* ray)
     // Exit case 2
     if (t < 0) // triangle is behind the ray
     {
+//printf("\tExit# 2 \n");
         if(next == NULL)
         {
             return NULL;
@@ -195,6 +210,7 @@ Tintersect* Triangle::hit(Ray* ray)
     float t3 = dotProd(*three,n);
     if (t1 < 0)
     {
+//printf("\tExit# 3 a\n");
         if(next == NULL)
         {
             return NULL;
@@ -206,6 +222,7 @@ Tintersect* Triangle::hit(Ray* ray)
     }
     if (t2 < 0)
     {
+//printf("\tExit# 3 b\n");
         if(next == NULL)
         {
             return NULL;
@@ -217,6 +234,7 @@ Tintersect* Triangle::hit(Ray* ray)
     }
     if (t3 < 0)
     {
+//printf("\tExit# 3 c\n");
         if(next == NULL)
         {
             return NULL;
