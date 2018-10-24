@@ -134,5 +134,25 @@ void Triangle::add(Vec3 v1, Vec3 v2, Vec3 v3, Vec3 n, material* mat)
 
 Tintersect* Triangle::hit(Ray* ray)
 {
+    Vec3 rayOrg = ray->o;
+    Vec3 rayDir = ray->d;
 
+    // point a is a
+    // point b is b
+    // point c is c
+    // normal is n
+
+    // Exit case 1
+    // if ray and plane are parallel then they don't intersect!
+    if ( (dotProd(rayDir,n) == 0) || ((dotProd(rayDir,n) >= -0.001)&&(dotProd(rayDir,n) <= 0.001)) ) // if dot product is 0 or almost 0
+    {
+        if(next == NULL)
+        {
+            return NULL;
+        }
+        else
+        {
+            return next->hit(ray);
+        }
+    }
 }

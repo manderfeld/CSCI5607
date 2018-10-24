@@ -510,10 +510,6 @@ int main(int argc, char* argv[]){
 	{
 		for (int j = 0; j < h; j++)
 		{	
-
-
-
-			/*
 			// find V
 			xpos = w/2.0 - i;
 			ypos = h/2.0 - j;
@@ -523,8 +519,8 @@ int main(int argc, char* argv[]){
 			// Use V to find hits
 			P0->o = cam->O;
 			P0->d = *V;
-			intersect* surf = NULL, *hit = NULL;
-			Sphere* now = sp;
+			Tintersect* surf = NULL, *hit = NULL;
+			Triangle* now = tr;
 			if (sp != NULL)
 			{
 				hit = NULL;
@@ -534,6 +530,12 @@ int main(int argc, char* argv[]){
 			Pixel p = img->GetPixel(i, j);
 			while (hit != NULL) // HIT
 			{
+
+				p.r = 255;
+				p.g = 255;
+				p.b = 255;
+				p.a = 255;
+
 				// printf("HIT (%f,%f,%f)\n", hit->hit.x, hit->hit.y, hit->hit.z);
 				if (surf == NULL)
 					surf = hit;
@@ -553,6 +555,8 @@ int main(int argc, char* argv[]){
 
 			if (surf != NULL)
 			{
+/*
+
 				Vec3 vhit(surf->hit.x, surf->hit.y, surf->hit.z); // Position that you hit
 				now = surf->obj; // Object that you hit
 				material* color = now->mat;
@@ -674,6 +678,8 @@ int main(int argc, char* argv[]){
 				p.b = 255 * b;
 				p.a = 255;
 				delete surf;
+
+*/
 			}
 			else 			 // MISS
 			{
@@ -683,7 +689,6 @@ int main(int argc, char* argv[]){
 			delete V;
 			// Image processing
 			img->GetPixel(i, j) = p;
-			*/
 		}
 	}
   
