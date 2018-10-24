@@ -136,7 +136,7 @@ int main(int argc, char* argv[]){
 			{
 				float x,y,z;
 				input >> x >> y >> z;
-				printf("Vertex %lu (%f, %f, %f)\n", vertices.size()+1, x, y, z);
+				printf("Vertex %lu (%f, %f, %f)\n", vertices.size(), x, y, z);
 				Vec3 vertex(x,y,z);
 				vertices.push_back(vertex);
 			}
@@ -168,41 +168,45 @@ int main(int argc, char* argv[]){
 				Vec3 bc = b-c;
 				Vec3 ab = a-b;
 
-				Vec3* n = crossProd(ca, bc); // normal vector
+				Vec3* np = crossProd(ca, bc); // normal vector
+				Vec3 n = *np;
 
 				float temp = 0.0;
 
 				// check if the normal vector is pointing towards the camera or away from it
-				// we want it pointing towards the camera, the dot product of n and the camera should be negative (if it is positive, then switch the direction of z)
+				// we want it pointing towards the camera, the dot product of n and the camera should be negative
+				// (if the vector is pointing towards the camera, its dot product should be negative)
+				//if it is positive, then switch the direction of z
 				if (cam == NULL)
 				{
-printf("IF\n");
 					// use default camera
 					Camera* tempcam = new Camera;
-
-					//temp = dotProd(tempcam, *n);
+					temp = dotProd(tempcam->D, n); // look at the diretion of the camera
 					delete tempcam;
 				}
 				else
 				{
-printf("ELSE\n");
-					//temp = dotProd(cam, *n);
+					temp = dotProd(cam->D, n); // look at the diretion of the camera
 				}
-printf("temp: %f\n", temp);
 
-				Vec3 n_i;
+				if (temp > 0)
+				{
+					Vec3 flip;
+					flip = Vec3(0.0,0.0,0.0);
+					n = flip - n;
+				}
 
 				printf("Triangle with vertices at index %d, %d, %d added\n", v1, v2, v3);
 				if (tr == NULL)
 				{
-					tr = new Triangle(a, b, c, *n, mat);
+					tr = new Triangle(a, b, c, n, mat);
 				}
 				else
 				{
-					tr->add(a, b, c, *n, mat);
+					tr->add(a, b, c, n, mat);
 				}
 
-				delete n;
+				delete np;
 			}
 			else
 			{
