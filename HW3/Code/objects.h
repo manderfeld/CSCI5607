@@ -116,18 +116,20 @@ class Triangle
 {
 public:
     Vec3 v1, v2, v3;
-    Vec3 O;
+    Vec3 n; // normal vector
     Triangle* next;
     material* mat;
 
-    Triangle() : v1(0.0,0.0,0.0), v2(0.0,0.0,0.0), v3(0.0,0.0,0.0), next(NULL) {}
-    Triangle(Vec3 v1, Vec3 v2, Vec3 v3, material *mat) : v1(v1), v2(v2), v3(v3), next(NULL)
+    Triangle() : v1(0.0,0.0,0.0), v2(0.0,0.0,0.0), v3(0.0,0.0,0.0), n(0.0,0.0,0.0), next(NULL) {}
+    
+    // No normal specified, we have to calculate it
+    Triangle(Vec3 v1, Vec3 v2, Vec3 v3, Vec3 n, material *mat) : v1(v1), v2(v2), v3(v3), n(n), next(NULL)
     {
         this->mat = new material();
         *this->mat = *mat;
     }
     ~Triangle();
-    void add(Vec3 v1, Vec3 v2, Vec3 v3, material*mat);
+    void add(Vec3 v1, Vec3 v2, Vec3 v3, Vec3 n, material*mat);
     Tintersect* hit(Ray* ray);
 };
 

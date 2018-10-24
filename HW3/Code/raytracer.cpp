@@ -147,15 +147,62 @@ int main(int argc, char* argv[]){
 			input >> v1 >> v2 >> v3;
 			if ( (v1<=vertices.size()) && (v2<=vertices.size()) && (v3<=vertices.size()) ) // check if these are valid vertices
 			{
-				printf("Triangle with vertices at index %d, %d, %d added\n", v1, v2, v3);
-				if (tr == NULL)
+
+				// calculate a normal for the triangle, since we aren't given one
+				// we also don't know if the vertices are CW or CCW
+				// so take the cross product of two random edges
+
+
+				// edges
+
+				/*      *    C
+					   /  \
+				   A  *____*   B
+				*/    
+
+				Vec3 a = vertices.at(v1);
+				Vec3 b = vertices.at(v2);
+				Vec3 c = vertices.at(v3);
+
+				Vec3 ca = c-a; // from point a to point c (to point c from point a)   C  <===== A
+				Vec3 bc = b-c;
+				Vec3 ab = a-b;
+
+				Vec3* n = crossProd(ca, bc); // normal vector
+
+				float temp = 0.0;
+
+				// check if the normal vector is pointing towards the camera or away from it
+				// we want it pointing towards the camera, the dot product of n and the camera should be negative (if it is positive, then switch the direction of z)
+				if (cam == NULL)
 				{
-					tr = new Triangle(vertices[v1], vertices[v2], vertices[v3], mat);
+printf("IF\n");
+					// use default camera
+					Camera* tempcam = new Camera;
+
+					//temp = dotProd(tempcam, *n);
+					delete tempcam;
 				}
 				else
 				{
-					tr->add(vertices[v1], vertices[v2], vertices[v3], mat);
+printf("ELSE\n");
+					//temp = dotProd(cam, *n);
 				}
+printf("temp: %f\n", temp);
+
+				Vec3 n_i;
+
+				printf("Triangle with vertices at index %d, %d, %d added\n", v1, v2, v3);
+				if (tr == NULL)
+				{
+					tr = new Triangle(a, b, c, *n, mat);
+				}
+				else
+				{
+					tr->add(a, b, c, *n, mat);
+				}
+
+				delete n;
 			}
 			else
 			{
