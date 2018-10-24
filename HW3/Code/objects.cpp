@@ -178,6 +178,7 @@ Tintersect* Triangle::hit(Ray* ray)
     // b = v2
     // c = v3
     Vec3 ba = v2 - v1;
+    Vec3 ca = v3 - v1;
     Vec3 cb = v3 - v2;
     Vec3 ac = v1 - v3;
     Vec3 qa = Q - v1;
@@ -229,9 +230,18 @@ Tintersect* Triangle::hit(Ray* ray)
     // okay, from here we know that Q is inside the triangle
     
     // Barycentric coordinates
+    Vec3* four = crossProd(ba,ca);
+
+    float alpha; // (two dot n) / (four dot n)
+    float beta; // (three dot n)
+    float gamma; // (one)
+
+    Vec3* five;
+    Vec3* six;
 
 
+delete one; delete two; delete three; delete four;
 
-
-return NULL;
+Tintersect* hit = new Tintersect(Q.x, Q.y, Q.z, this);
+return hit;
 }
