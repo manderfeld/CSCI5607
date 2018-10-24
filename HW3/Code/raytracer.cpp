@@ -521,7 +521,7 @@ int main(int argc, char* argv[]){
 			P0->d = *V;
 			Tintersect* surf = NULL, *hit = NULL;
 			Triangle* now = tr;
-			if (sp != NULL)
+			if (tr != NULL)
 			{
 				hit = NULL;
 				hit = now->hit(P0);

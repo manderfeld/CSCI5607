@@ -134,13 +134,8 @@ void Triangle::add(Vec3 v1, Vec3 v2, Vec3 v3, Vec3 n, material* mat)
 
 Tintersect* Triangle::hit(Ray* ray)
 {
-    Vec3 rayOrg = ray->o;
-    Vec3 rayDir = ray->d;
-
-    // point a is a
-    // point b is b
-    // point c is c
-    // normal is n
+    Vec3 rayOrg = ray->o; // P
+    Vec3 rayDir = ray->d; // d
 
     // Exit case 1
     // if ray and plane are parallel then they don't intersect!
@@ -155,4 +150,88 @@ Tintersect* Triangle::hit(Ray* ray)
             return next->hit(ray);
         }
     }
+
+    // ray-plane intersection
+    float D = dotProd(n, v1); // plane coefficient, can do dot product with any vertex, just do the first one
+//printf("D: %f\n", D);
+    float t = (dotProd(n, rayOrg) + D) / dotProd(n, rayDir); 
+    // if this doesn't work, try flipping the sign?
+    //float t = - (dotProd(n, rayOrg) + D) / dotProd(n, rayDir);
+
+    // Exit case 2
+    if (t < 0) // triangle is behind the ray
+    {
+        if(next == NULL)
+        {
+            return NULL;
+        }
+        else
+        {
+            return next->hit(ray);
+        }
+    }
+
+    Vec3 Q = rayOrg + t*rayDir; // plug into parametric equation
+
+    // Now see if the point Q actually lies within the triangle (if it does we can return an intersection object, if not we exit!)
+    // a = v1
+    // b = v2
+    // c = v3
+    Vec3 ba = v2 - v1;
+    Vec3 cb = v3 - v2;
+    Vec3 ac = v1 - v3;
+    Vec3 qa = Q - v1;
+    Vec3 qb = Q - v2;
+    Vec3 qc = Q - v3;
+
+    Vec3* one = crossProd(ba,qa);
+    Vec3* two = crossProd(cb,qb);
+    Vec3* three = crossProd(ac,qc);
+
+    // Exit case 3
+    float t1 = dotProd(*one,n);
+    float t2 = dotProd(*two,n);
+    float t3 = dotProd(*three,n);
+    if (t1 < 0)
+    {
+        if(next == NULL)
+        {
+            return NULL;
+        }
+        else
+        {
+            return next->hit(ray);
+        }
+    }
+    if (t2 < 0)
+    {
+        if(next == NULL)
+        {
+            return NULL;
+        }
+        else
+        {
+            return next->hit(ray);
+        }
+    }
+    if (t3 < 0)
+    {
+        if(next == NULL)
+        {
+            return NULL;
+        }
+        else
+        {
+            return next->hit(ray);
+        }
+    }
+
+    // okay, from here we know that Q is inside the triangle
+    
+    // Barycentric coordinates
+
+
+
+
+return NULL;
 }
