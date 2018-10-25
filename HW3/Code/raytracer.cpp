@@ -325,10 +325,10 @@ int main(int argc, char* argv[]){
 	//printf("Unit d: %f,%f,%f\n", D.x, D.y, D.z);
 
 	for (int i = 0; i < w; i++)
-	{
+	{	
+		printf("pixel %d of %d\n", i, w);
 		for (int j = 0; j < h; j++)
-		{	
-printf("pixel %d, %d\n", i, j);
+		{
 			// find V
 			xpos = w/2.0 - i;
 			ypos = h/2.0 - j;
@@ -479,9 +479,9 @@ printf("pixel %d, %d\n", i, j);
 								// Shadows //
 								/////////////
 
-								struct timeval tp;
-								gettimeofday(&tp, NULL);
-								long int ms = tp.tv_sec * 1000 + tp.tv_usec / 1000;
+								//struct timeval tp;
+								//gettimeofday(&tp, NULL);
+								//long int ms = tp.tv_sec * 1000 + tp.tv_usec / 1000;
 
 								Ray* light = new Ray();	// ray for shadow checking
 								light->o = vhit + (0.00001 * *l_n);	// move the ray's origin very slightly towards the light source to avoid shadow acne
@@ -502,7 +502,8 @@ printf("pixel %d, %d\n", i, j);
 								}
 								else
 								{
-									shadowT = tr->hit(light);
+									shadowT = NULL;
+									//shadowT = tr->hit(light);
 								}
 
 								delete light;
@@ -517,7 +518,7 @@ printf("pixel %d, %d\n", i, j);
 										delete shadowT;
 									}
 									// cout << "Shadow" << endl;
-									continue;
+									//continue;
 								}
 
 								float nl = dotProd(*n_n, *l_n); // dotProd(normal unit vector, light unit vector)
