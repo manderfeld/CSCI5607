@@ -536,7 +536,7 @@ int main(int argc, char* argv[]){
 			Pixel p = img->GetPixel(i, j);
 			if (hit != NULL) // HIT
 			{
-				printf("HIT (%f,%f,%f)\n", hit->hit.x, hit->hit.y, hit->hit.z);
+				//printf("HIT (%f,%f,%f)\n", hit->hit.x, hit->hit.y, hit->hit.z);
 				now = hit->obj;
 				material* color = now->mat;
 				p.r = 255 * color->ar;
