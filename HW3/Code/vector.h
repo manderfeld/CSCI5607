@@ -48,6 +48,8 @@ struct Vec3
 Vec3 operator + (const Vec3 &a, const Vec3 &b);
 Vec3 operator - (const Vec3 &a, const Vec3 &b);
 Vec3 operator * (const float &a, const Vec3 &b);
+Vec3 operator / (const Vec3 &b, const float &a);
+
 
 float dotProd(const Vec3 &a, const Vec3 &b);
 Vec3* crossProd(const Vec3 &a, const Vec3 &b);

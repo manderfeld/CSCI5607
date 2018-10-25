@@ -7,4 +7,4 @@ all: $(MAIN)
 	$(CC) $(MAIN) -o $(EXECUTABLE) $(DEP)
 
 clean:
-	rm -rf $(OBJFILES) $(MAIN)
+	rm -rf $(OBJFILES)
