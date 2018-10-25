@@ -132,17 +132,43 @@ void Triangle::add(Vec3 v1, Vec3 v2, Vec3 v3, Vec3 n, material* mat)
     return;
 }
 
+
+// Moller-Trumbore intersection algorithm
 Tintersect* Triangle::hit(Ray* ray)
 {
 //printf("in hit\n");
     Vec3 rayOrg = ray->o; // P
     Vec3 rayDir = ray->d; // d
 
-    // Exit case 1
-    // if ray and plane are parallel then they don't intersect!
-    if (dotProd(rayDir,n) == 0) // if dot product is 0
+    Vec3 vert0 = v1;
+    Vec3 vert1 = v2;
+    Vec3 vert2 = v3;
+    Vec3 edge1, edge2, s;
+    Vec3* hp;
+    Vec3* qp;
+    //Vec3 h;
+    float a, f, u, v;
+
+    edge1 = vert1 - vert0;
+    edge2 = vert2 - vert0;
+    hp = crossProd(rayDir, edge2);
+    a = dotProd(edge1, *hp);
+    if ( a > 0.0000001 && a < 0.0000001) // parallel case
     {
-//printf("\tExit# 1 a\n");
+        if(next == NULL)
+        {
+            return NULL;
+        }
+        else
+        {
+            return next->hit(ray);
+        }  
+    }
+    f = 1.0/a;
+    s = rayOrg - vert0;
+    u = f * (dotProd(s,*hp));
+    if (u < 0.0 || u > 1.0)
+    {
         if(next == NULL)
         {
             return NULL;
@@ -152,9 +178,10 @@ Tintersect* Triangle::hit(Ray* ray)
             return next->hit(ray);
         }
     }
-    else if( fabs(dotProd(rayDir,n)) < 0.000001) // or almost 0
+    qp = crossProd(s, edge1);
+    v = f * (dotProd(rayDir, *qp));
+    if (v < 0.0 || u + v > 1.0)
     {
-//printf("\tExit# 1 b\n");
         if(next == NULL)
         {
             return NULL;
@@ -164,18 +191,15 @@ Tintersect* Triangle::hit(Ray* ray)
             return next->hit(ray);
         }
     }
-
-    // ray-plane intersection
-    float D = dotProd(n, v1); // plane coefficient, can do dot product with any vertex, just do the first one
-//printf("D: %f\n", D);
-    float t = (dotProd(n, rayOrg) + D) / dotProd(n, rayDir); 
-    // if this doesn't work, try flipping the sign?
-    //float t = - (dotProd(n, rayOrg) + D) / dotProd(n, rayDir);
-
-    // Exit case 2
-    if (t < 0) // triangle is behind the ray
+    float t = f * (dotProd(edge2,*qp));
+    if ( t > 0.0000001) // ray intersection
     {
-//printf("\tExit# 2 \n");
+        Vec3 Q = rayOrg + t*rayDir;
+        Tintersect* hit = new Tintersect(Q.x, Q.y, Q.z, this);
+        return hit;
+    }
+    else
+    {
         if(next == NULL)
         {
             return NULL;
@@ -185,81 +209,4 @@ Tintersect* Triangle::hit(Ray* ray)
             return next->hit(ray);
         }
     }
-
-    Vec3 Q = rayOrg + t*rayDir; // plug into parametric equation
-
-    // Now see if the point Q actually lies within the triangle (if it does we can return an intersection object, if not we exit!)
-    // a = v1
-    // b = v2
-    // c = v3
-    Vec3 ba = v2 - v1;
-    Vec3 ca = v3 - v1;
-    Vec3 cb = v3 - v2;
-    Vec3 ac = v1 - v3;
-    Vec3 qa = Q - v1;
-    Vec3 qb = Q - v2;
-    Vec3 qc = Q - v3;
-
-    Vec3* one = crossProd(ba,qa);
-    Vec3* two = crossProd(cb,qb);
-    Vec3* three = crossProd(ac,qc);
-
-    // Exit case 3
-    float t1 = dotProd(*one,n);
-    float t2 = dotProd(*two,n);
-    float t3 = dotProd(*three,n);
-    if (t1 < 0)
-    {
-//printf("\tExit# 3 a\n");
-        if(next == NULL)
-        {
-            return NULL;
-        }
-        else
-        {
-            return next->hit(ray);
-        }
-    }
-    if (t2 < 0)
-    {
-//printf("\tExit# 3 b\n");
-        if(next == NULL)
-        {
-            return NULL;
-        }
-        else
-        {
-            return next->hit(ray);
-        }
-    }
-    if (t3 < 0)
-    {
-//printf("\tExit# 3 c\n");
-        if(next == NULL)
-        {
-            return NULL;
-        }
-        else
-        {
-            return next->hit(ray);
-        }
-    }
-
-    // okay, from here we know that Q is inside the triangle
-    
-    // Barycentric coordinates
-    Vec3* four = crossProd(ba,ca);
-
-    float alpha; // (two dot n) / (four dot n)
-    float beta; // (three dot n)
-    float gamma; // (one)
-
-    Vec3* five;
-    Vec3* six;
-
-
-delete one; delete two; delete three; delete four;
-
-Tintersect* hit = new Tintersect(Q.x, Q.y, Q.z, this);
-return hit;
 }

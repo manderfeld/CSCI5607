@@ -165,11 +165,16 @@ int main(int argc, char* argv[]){
 				Vec3 c = vertices.at(v3);
 
 				Vec3 ca = c-a; // from point a to point c (to point c from point a)   C  <===== A
-				Vec3 bc = b-c;
-				Vec3 ab = a-b;
+				Vec3 ba = b-a;
 
-				Vec3* np = crossProd(ca, bc); // normal vector
-				Vec3 n = *np;
+				//Vec3 bc = b-c;
+				//Vec3 ab = a-b;
+
+				Vec3* np = crossProd(ba, ca);
+				float npmag = np->Magnitude();
+				Vec3 n = (*np)/npmag;
+				//Vec3* np = crossProd(ca, bc); // normal vector
+				//Vec3 n = *np;
 
 				float temp = 0.0;
 
@@ -199,12 +204,12 @@ int main(int argc, char* argv[]){
 				if (tr == NULL)
 				{
 					tr = new Triangle(a, b, c, n, mat);
-					printf("Triangle with vertices at index %d, %d, %d added\n", v1, v2, v3);
+					printf("Triangle with vertices at index %d, %d, %d with normal (%f, %f, %f) added\n", v1, v2, v3, n.x, n.y, n.z);
 				}
 				else
 				{
 					tr->add(a, b, c, n, mat);
-					printf("Triangle with vertices at index %d, %d, %d added!\n", v1, v2, v3);
+					printf("Triangle with vertices at index %d, %d, %d with normal (%f, %f, %f) added!\n", v1, v2, v3, n.x, n.y, n.z);
 				}
 
 				delete np;
