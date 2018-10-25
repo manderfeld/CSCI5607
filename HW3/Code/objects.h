@@ -70,46 +70,6 @@ public:
 
 
 
-
-
-
-// WITH INHERITANCE, ETC
-class xIntersect;
-
-class xObject
-{
-public:
-    virtual xIntersect* hit(Ray* ray) = 0;
-};
-
-class xSphere : public xObject
-{
-};
-class xTriangle : public xObject
-{
-};
-class xIntersect
-{
-public:
-    xObject* obj;
-    Vec3 hit;
-    xIntersect(float x, float y, float z, xObject* o)
-    {
-        hit.x = x; hit.y = y; hit.z = z;
-        obj = o;
-    }
-};
-
-
-
-
-
-
-
-
-// WITHOUT INHERITANCE, ETC
-
-
 class intersect;
 
 class Sphere
@@ -135,25 +95,6 @@ public:
     intersect* hit(Ray* ray);
 };
 
-class intersect
-{
-public:
-    Sphere* obj;
-    Vec3 hit;
-
-    intersect(float x, float y, float z, Sphere* o)
-    {
-        hit.x = x;
-        hit.y = y;
-        hit.z = z;
-        obj = o;
-    }
-};
-
-// make a class object that sphere and triange inherit from
-// then we can iterate through a vector of objects or something
-
-class Tintersect;
 class Triangle
 {
 public:
@@ -172,21 +113,40 @@ public:
     }
     ~Triangle();
     void add(Vec3 v1, Vec3 v2, Vec3 v3, Vec3 n, material*mat);
-    Tintersect* hit(Ray* ray);
+    intersect* hit(Ray* ray);
 };
 
-class Tintersect
+class intersect
 {
 public:
-    Triangle* obj;
+    Sphere* objS;
+    Triangle* objT;
     Vec3 hit;
 
-    Tintersect(float x, float y, float z, Triangle* o)
+    intersect(float x, float y, float z, Sphere* s, Triangle* t)
     {
         hit.x = x;
         hit.y = y;
         hit.z = z;
-        obj = o;
+        objS = s;
+        objT = t;
+    }
+
+    intersect(float x, float y, float z, Sphere* o)
+    {
+        hit.x = x;
+        hit.y = y;
+        hit.z = z;
+        objS = o;
+        objT = NULL;
+    }
+    intersect(float x, float y, float z, Triangle* o)
+    {
+        hit.x = x;
+        hit.y = y;
+        hit.z = z;
+        objT = o;
+        objS = NULL;
     }
 };
 

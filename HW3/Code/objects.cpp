@@ -134,7 +134,7 @@ void Triangle::add(Vec3 v1, Vec3 v2, Vec3 v3, Vec3 n, material* mat)
 
 
 // Moller-Trumbore intersection algorithm
-Tintersect* Triangle::hit(Ray* ray)
+intersect* Triangle::hit(Ray* ray)
 {
 //printf("in hit\n");
     Vec3 rayOrg = ray->o; // P
@@ -195,7 +195,7 @@ Tintersect* Triangle::hit(Ray* ray)
     if ( t > 0.0000001) // ray intersection
     {
         Vec3 Q = rayOrg + t*rayDir;
-        Tintersect* hit = new Tintersect(Q.x, Q.y, Q.z, this);
+        intersect* hit = new intersect(Q.x, Q.y, Q.z, this);
         return hit;
     }
     else
