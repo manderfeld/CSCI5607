@@ -155,6 +155,7 @@ intersect* Triangle::hit(Ray* ray)
     a = dotProd(edge1, *hp);
     if ( a > 0.0000001 && a < 0.0000001) // parallel case
     {
+        delete hp;
         if(next == NULL)
         {
             return NULL;
@@ -180,6 +181,7 @@ intersect* Triangle::hit(Ray* ray)
     }
     qp = crossProd(s, edge1);
     v = f * (dotProd(rayDir, *qp));
+    delete hp;
     if (v < 0.0 || u + v > 1.0)
     {
         if(next == NULL)
@@ -192,6 +194,7 @@ intersect* Triangle::hit(Ray* ray)
         }
     }
     float t = f * (dotProd(edge2,*qp));
+    delete qp;
     if ( t > 0.0000001) // ray intersection
     {
         Vec3 Q = rayOrg + t*rayDir;

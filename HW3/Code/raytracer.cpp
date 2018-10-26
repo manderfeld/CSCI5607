@@ -219,6 +219,85 @@ int main(int argc, char* argv[]){
 				printf("Cannot add triangle! Not all vertices exist.\nLooking at vertices %d, %d, %d\nNumber of vertices: %lu\n", v1, v2, v3, vertices.size());
 			}
 		}
+//UNFINISHED treating normal triangles as triangles (this is incorrect)
+else if (command == "normal_triangle")
+		{
+			int v1, v2, v3, n1, n2, n3;
+			input >> v1 >> v2 >> v3 >> n1 >> n2 >> n3;
+			if ( (v1<=vertices.size()) && (v2<=vertices.size()) && (v3<=vertices.size()) ) // check if these are valid vertices
+			{
+
+				// calculate a normal for the triangle, since we aren't given one
+				// we also don't know if the vertices are CW or CCW
+				// so take the cross product of two random edges
+
+
+				// edges
+
+				/*      *    C
+					   /  \
+				   A  *____*   B
+				*/    
+
+				Vec3 a = vertices.at(v1);
+				Vec3 b = vertices.at(v2);
+				Vec3 c = vertices.at(v3);
+
+				Vec3 ca = c-a; // from point a to point c (to point c from point a)   C  <===== A
+				Vec3 ba = b-a;
+
+				//Vec3 bc = b-c;
+				//Vec3 ab = a-b;
+
+				Vec3* np = crossProd(ba, ca);
+				float npmag = np->Magnitude();
+				Vec3 n = (*np)/npmag;
+				//Vec3* np = crossProd(ca, bc); // normal vector
+				//Vec3 n = *np;
+
+				float temp = 0.0;
+
+				// check if the normal vector is pointing towards the camera or away from it
+				// we want it pointing towards the camera, the dot product of n and the camera should be negative
+				// (if the vector is pointing towards the camera, its dot product should be negative)
+				//if it is positive, then switch the direction of z
+				if (cam == NULL)
+				{
+					// use default camera
+					Camera* tempcam = new Camera;
+					temp = dotProd(tempcam->D, n); // look at the diretion of the camera
+					delete tempcam;
+				}
+				else
+				{
+					temp = dotProd(cam->D, n); // look at the diretion of the camera
+				}
+
+				if (temp > 0)
+				{
+					Vec3 flip;
+					flip = Vec3(0.0,0.0,0.0);
+					n = flip - n;
+				}
+
+				if (tr == NULL)
+				{
+					tr = new Triangle(a, b, c, n, mat);
+					printf("Triangle with vertices at index %d, %d, %d with normal (%f, %f, %f) added\n", v1, v2, v3, n.x, n.y, n.z);
+				}
+				else
+				{
+					tr->add(a, b, c, n, mat);
+					printf("Triangle with vertices at index %d, %d, %d with normal (%f, %f, %f) added!\n", v1, v2, v3, n.x, n.y, n.z);
+				}
+
+				delete np;
+			}
+			else
+			{
+				printf("Cannot add triangle! Not all vertices exist.\nLooking at vertices %d, %d, %d\nNumber of vertices: %lu\n", v1, v2, v3, vertices.size());
+			}
+		}
 		else if (command == "camera")
 		{
 		//If the command is a camera command
@@ -423,160 +502,275 @@ int main(int argc, char* argv[]){
 					color = surf->objT->mat;
 				}
 
-						// pixel values, if no lighting info, same as background
-						float r = p.r;
-						float g = p.g;
-						float b = p.b;
-						// ambient
-							float ar = 0.0;
-							float ag = 0.0;
-							float ab = 0.0; // ambient
-						// diffuse (Lambertian)
-							float dr = 0.0;
-							float dg = 0.0;
-							float db = 0.0;
-						// specular (Phong)
-							float sr = 0.0;
-							float sg = 0.0;
-							float sb = 0.0;
+				// pixel values, if no lighting info, same as background
+					float r = p.r;
+					float g = p.g;
+					float b = p.b;
+				// ambient
+					float ar = 0.0;
+					float ag = 0.0;
+					float ab = 0.0; // ambient
+				// diffuse (Lambertian)
+					float dr = 0.0;
+					float dg = 0.0;
+					float db = 0.0;
+				// specular (Phong)
+					float sr = 0.0;
+					float sg = 0.0;
+					float sb = 0.0;
 
-						// ambient light
-						ar = color->ar*al_r;
-						ag = color->ag*al_g;
-						ab = color->ab*al_b;
+				// ambient light
+				ar = color->ar*al_r;
+				ag = color->ag*al_g;
+				ab = color->ab*al_b;
 
-						//Labmertian and Phong
-						//RIGHT NOW, assuming one point light
-						//TODO: Multiple point lights!
-						if (pl_list.begin() != pl_list.end())
+///////////////////////////////
+// POINT LIGHTS              //
+///////////////////////////////
+				//Labmertian and Phong
+				//RIGHT NOW, assuming one point light
+				//TODO: Multiple point lights!
+				if (pl_list.begin() != pl_list.end())
+				{
+					vector<Light*>:: iterator i;
+					for (i = pl_list.begin(); i != pl_list.end(); i++)
+					{
+
+						// LAMBERTIAN
+						Light* pl = (*i); // look at first point light
+
+						Vec3 n;
+						//Vec3 n = vhit - now->O; // normal
+						if(surf->objT == NULL)
 						{
-							vector<Light*>:: iterator i;
-							for (i = pl_list.begin(); i != pl_list.end(); i++)
-							{
-
-								// LAMBERTIAN
-								Light* pl = (*i); // look at first point light
-
-								Vec3 n;
-								//Vec3 n = vhit - now->O; // normal
-								if(surf->objT == NULL)
-								{
-									n = vhit - curS->O;
-								}
-								else if (surf->objS == NULL)
-								{
-									n = vhit - curT->n; // NOT FINI
+							n = vhit - curS->O;
+						}
+						else if (surf->objS == NULL)
+						{
+							n = vhit - curT->n; // NOT FINI
 //////////////////////////////// THIS ISN'T DONE ^ /////////////////////
-								// need to do stuff with barycentric coordinates, etc
-								}
-
-								Vec3* n_n = n.UnitVector(); // unit vector version of the normal vector
-								
-								Vec3 l = pl->position - vhit;
-								Vec3* l_n = l.UnitVector();
-
-								/////////////
-								// Shadows //
-								/////////////
-
-								//struct timeval tp;
-								//gettimeofday(&tp, NULL);
-								//long int ms = tp.tv_sec * 1000 + tp.tv_usec / 1000;
-
-								Ray* light = new Ray();	// ray for shadow checking
-								light->o = vhit + (0.00001 * *l_n);	// move the ray's origin very slightly towards the light source to avoid shadow acne
-								light->d = *l_n;
-								intersect* shadowS;
-								intersect* shadowT;
-								if (sp == NULL)
-								{
-									shadowS = NULL;
-								}
-								else
-								{
-									shadowS = sp->hit(light);
-								}
-								if (tr == NULL)
-								{
-									shadowT = NULL;
-								}
-								else
-								{
-									shadowT = NULL;
-									//shadowT = tr->hit(light);
-								}
-
-								delete light;
-								if (shadowS != NULL || shadowT != NULL)
-								{
-									if (shadowS != NULL)
-									{
-										delete shadowS;
-									}
-									if (shadowT != NULL)
-									{
-										delete shadowT;
-									}
-									// cout << "Shadow" << endl;
-									//continue;
-								}
-
-								float nl = dotProd(*n_n, *l_n); // dotProd(normal unit vector, light unit vector)
-								if ( nl < 0)
-								{
-									nl = 0;
-								}
-
-								float d2 = dotProd(l, l); // attenuation: distance from light squared
-								//printf("d2: %f\n", d2); 
-
-								dr += (color->dr)/d2 * (pl->r) * nl;
-								dg += (color->dg)/d2 * (pl->g) * nl;
-								db += (color->db)/d2 * (pl->b) * nl;
-
-								// PHONG
-								// we will use the Vec3* l_n n_n from before (light and normal vectors)
-								// Is = ks *( pow(dotProd(V,R),n) * Il)
-								Vec3 r = (2 * dotProd(*n_n, *l_n)) * *n_n - *l_n;
-								//float rmag = r.Magnitude();
-								//printf("rmag: %f\n", rmag);
-
-								// -1.0 * *V becau se want FROM intersectino TO eye (not other way around)
-								float n_dot_h = dotProd(-1.0 * *V, r);
-								if (n_dot_h < 0)
-								{
-									n_dot_h = 0;
-								}
-
-								sr += (color->sr)/d2 * pow( n_dot_h ,color->ns) * pl->r;
-								sg += (color->sg)/d2 * pow( n_dot_h ,color->ns) * pl->g;
-								sb += (color->sb)/d2 * pow( n_dot_h ,color->ns) * pl->b;
-								delete n_n;
-								delete l_n;
-							}
+						// need to do stuff with barycentric coordinates, etc
 						}
 
-						//////////////
-						//Reflection //
-						//////////////
-						float rr = 0, rg = 0, rb = 0;
-						float tr = 0, tg = 0, tb = 0;
+						Vec3* n_n = n.UnitVector(); // unit vector version of the normal vector
+						
+						Vec3 l = pl->position - vhit;
+						Vec3* l_n = l.UnitVector();
 
-						// Do ambient, diffuse, and specular all at once!
-						r = ar + dr + sr;
-						g = ag + dg + sg;
-						b = ab + db + sb;
+						/////////////
+						// Shadows //
+						/////////////
 
-						r = (r > 1) ? 1 : r;
-						g = (g > 1) ? 1 : g;
-						b = (b > 1) ? 1 : b;
-			
-						p.r = 255 * r;
-						p.g = 255 * g;
-						p.b = 255 * b;
-						p.a = 255;
-						delete surf;
-		
+						//struct timeval tp;
+						//gettimeofday(&tp, NULL);
+						//long int ms = tp.tv_sec * 1000 + tp.tv_usec / 1000;
+
+						Ray* light = new Ray();	// ray for shadow checking
+						light->o = vhit + (0.00001 * *l_n);	// move the ray's origin very slightly towards the light source to avoid shadow acne
+						light->d = *l_n;
+						intersect* shadowS;
+						intersect* shadowT;
+						if (sp == NULL)
+						{
+							shadowS = NULL;
+						}
+						else
+						{
+							shadowS = sp->hit(light);
+						}
+						if (tr == NULL)
+						{
+							shadowT = NULL;
+						}
+						else
+						{
+							shadowT = NULL;
+							//shadowT = tr->hit(light);
+						}
+
+						delete light;
+						if (shadowS != NULL || shadowT != NULL)
+						{
+							if (shadowS != NULL)
+							{
+								delete shadowS;
+							}
+							if (shadowT != NULL)
+							{
+								delete shadowT;
+							}
+							// cout << "Shadow" << endl;
+							continue;
+						}
+
+						float nl = dotProd(*n_n, *l_n); // dotProd(normal unit vector, light unit vector)
+						if ( nl < 0)
+						{
+							nl = 0;
+						}
+
+						float d2 = dotProd(l, l); // attenuation: distance from light squared
+						//printf("d2: %f\n", d2); 
+
+						dr += (color->dr)/d2 * (pl->r) * nl;
+						dg += (color->dg)/d2 * (pl->g) * nl;
+						db += (color->db)/d2 * (pl->b) * nl;
+
+						// PHONG
+						// we will use the Vec3* l_n n_n from before (light and normal vectors)
+						// Is = ks *( pow(dotProd(V,R),n) * Il)
+						Vec3 r = (2 * dotProd(*n_n, *l_n)) * *n_n - *l_n;
+						//float rmag = r.Magnitude();
+						//printf("rmag: %f\n", rmag);
+
+						// -1.0 * *V becau se want FROM intersectino TO eye (not other way around)
+						float n_dot_h = dotProd(-1.0 * *V, r);
+						if (n_dot_h < 0)
+						{
+							n_dot_h = 0;
+						}
+
+						sr += (color->sr)/d2 * pow( n_dot_h ,color->ns) * pl->r;
+						sg += (color->sg)/d2 * pow( n_dot_h ,color->ns) * pl->g;
+						sb += (color->sb)/d2 * pow( n_dot_h ,color->ns) * pl->b;
+						delete n_n;
+						delete l_n;
+						//delete light;
+					}
+				}
+
+////////////////////////////
+// DIRECTIONAL LIGHTS     //
+////////////////////////////
+				if (dl_list.begin() != dl_list.end())
+				{
+					vector<Light*>:: iterator i;
+					for (i = dl_list.begin(); i != dl_list.end(); i++)
+					{
+						// LAMBERTIAN
+						Light* dl = (*i); // look at first point light
+
+						Vec3 n;
+						//Vec3 n = vhit - now->O; // normal
+						if(surf->objT == NULL)
+						{
+							n = vhit - curS->O;
+						}
+						else if (surf->objS == NULL)
+						{
+							n = vhit - curT->n; // NOT FINI
+//////////////////////////////// THIS ISN'T DONE ^ /////////////////////
+						// need to do stuff with barycentric coordinates, etc
+						}
+
+						Vec3* n_n = n.UnitVector(); // unit vector version of the normal vector
+						
+						Vec3 l = dl->position;
+						Vec3* l_n = l.UnitVector();
+
+						/////////////
+						// Shadows //
+						/////////////
+
+						//struct timeval tp;
+						//gettimeofday(&tp, NULL);
+						//long int ms = tp.tv_sec * 1000 + tp.tv_usec / 1000;
+
+						Ray* light = new Ray();	// ray for shadow checking
+						light->o = vhit + (0.00001 * *l_n);	// move the ray's origin very slightly towards the light source to avoid shadow acne
+						light->d = *l_n;
+						intersect* shadowS;
+						intersect* shadowT;
+						if (sp == NULL)
+						{
+							shadowS = NULL;
+						}
+						else
+						{
+							shadowS = sp->hit(light);
+						}
+						if (tr == NULL)
+						{
+							shadowT = NULL;
+						}
+						else
+						{
+							shadowT = NULL;
+							//shadowT = tr->hit(light);
+						}
+
+						delete light;
+						if (shadowS != NULL || shadowT != NULL)
+						{
+							if (shadowS != NULL)
+							{
+								delete shadowS;
+							}
+							if (shadowT != NULL)
+							{
+								delete shadowT;
+							}
+							// cout << "Shadow" << endl;
+							continue;
+						}
+
+						float nl = dotProd(*n_n, *l_n); // dotProd(normal unit vector, light unit vector)
+						if ( nl < 0)
+						{
+							nl = 0;
+						}
+
+						float d2 = 1;
+						//float d2 = dotProd(l, l); // attenuation: distance from light squared
+						//printf("d2: %f\n", d2); 
+
+						dr += (color->dr)/d2 * (dl->r) * nl;
+						dg += (color->dg)/d2 * (dl->g) * nl;
+						db += (color->db)/d2 * (dl->b) * nl;
+
+						// PHONG
+						// we will use the Vec3* l_n n_n from before (light and normal vectors)
+						// Is = ks *( pow(dotProd(V,R),n) * Il)
+						Vec3 r = (2 * dotProd(*n_n, *l_n)) * *n_n - *l_n;
+						//float rmag = r.Magnitude();
+						//printf("rmag: %f\n", rmag);
+
+						// -1.0 * *V becau se want FROM intersectino TO eye (not other way around)
+						float n_dot_h = dotProd(-1.0 * *V, r);
+						if (n_dot_h < 0)
+						{
+							n_dot_h = 0;
+						}
+
+						sr += (color->sr)/d2 * pow( n_dot_h ,color->ns) * dl->r;
+						sg += (color->sg)/d2 * pow( n_dot_h ,color->ns) * dl->g;
+						sb += (color->sb)/d2 * pow( n_dot_h ,color->ns) * dl->b;
+						delete n_n;
+						delete l_n;
+						//delete light;
+					}
+				}
+
+				//////////////
+				//Reflection //
+				//////////////
+				float rr = 0, rg = 0, rb = 0;
+				float tr = 0, tg = 0, tb = 0;
+
+				// Do ambient, diffuse, and specular all at once!
+				r = ar + dr + sr;
+				g = ag + dg + sg;
+				b = ab + db + sb;
+
+				r = (r > 1) ? 1 : r;
+				g = (g > 1) ? 1 : g;
+				b = (b > 1) ? 1 : b;
+	
+				p.r = 255 * r;
+				p.g = 255 * g;
+				p.b = 255 * b;
+				p.a = 255;
+				delete surf;
 			}
 			else 			 // MISS
 			{
