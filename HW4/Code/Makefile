@@ -1,10 +1,9 @@
 CC=g++
-MAIN=raytracer.cpp
-DEP=image.cpp pixel.cpp vector.cpp objects.cpp
-EXECUTABLE=raytracer
+MAIN=maze.cpp
+EXECUTABLE=maze
 
 all: $(MAIN)
-	$(CC) $(MAIN) -o $(EXECUTABLE) $(DEP)
+	$(CC) $(MAIN) -o $(EXECUTABLE) -x c glad/glad.c -g -F/Library/Frameworks -framework SDL2 -framework OpenGL
 
 clean:
 	rm -rf $(OBJFILES)
