@@ -119,6 +119,19 @@ int main(int argc, char *argv[]){
 	printf("%d\n",numLines);
 	int numVertsKnot = numLines/8;
 	modelFile.close();
+
+	//Load Model 3
+	modelFile.open("models/cube.txt");
+	numLines = 0;
+	modelFile >> numLines;
+	float* model3 = new float[numLines];
+	for (int i = 0; i < numLines; i++){
+		modelFile >> model3[i];
+	}
+	printf("%d\n",numLines);
+	int numVertsCube = numLines/8;
+	modelFile.close();
+// UNFINISHED
 	
 	//SJG: I load each model in a different array, then concatenate everything in one big array
 	// This structure works, but there is room for improvement here. Eg., you should store the start
