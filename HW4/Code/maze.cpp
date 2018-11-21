@@ -246,11 +246,15 @@ int main(int argc, char *argv[]){
 
 
 	// VARIABLES
-	float res = 0.1; // resolution (amount we wish to modify things by)
+	float pos_res = 0.1; // resolution (amount we wish to modify things by)
+	float th_res = pos_res/5.0;
 	float c_pos_x = 3.0;
 	float c_pos_y = 0.0;
 	float c_pos_z = 0.0;
-	float c_theta = 0.0; // in radians from 0 to 2*3.14 or M_PI)
+	float c_dir_x = 0.0;
+	float c_dir_y = 0.0;
+	float c_dir_z = 1.0;
+	float c_theta = M_PI; // in radians from 0 to 2*3.14 or M_PI)
 
 	
 	//Event Loop (Loop forever processing each event as fast as possible)
@@ -276,7 +280,7 @@ int main(int argc, char *argv[]){
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_UP)
 			{ //If "up key" is pressed
 				
-				c_pos_x -= res;
+				c_pos_x -= pos_res;
 
 				//if (windowEvent.key.keysym.mod & KMOD_SHIFT) objx -= res; //Is shift pressed?
 				//else objz += res;
@@ -284,18 +288,22 @@ int main(int argc, char *argv[]){
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_DOWN)
 			{ //If "down key" is pressed
 
-				c_pos_x += res;
+				c_pos_x += pos_res;
 
 				//if (windowEvent.key.keysym.mod & KMOD_SHIFT) objx += res; //Is shift pressed?
 				//else objz -= res;
 			}
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_LEFT)
 			{ //If "left key" is pressed
-				objy -= res;
+				c_theta -= th_res;
+
+				//objy -= res;
 			}
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_RIGHT)
 			{ //If "right key" is pressed
-				objy += res;
+				c_theta += th_res;
+
+				//objy += res;
 			}
 			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_c)
 			{ //If "c" is pressed
@@ -313,10 +321,11 @@ int main(int argc, char *argv[]){
 
 
 		timePast = SDL_GetTicks()/1000.f; 
-
+		// Have camera look at stuff
 		glm::mat4 view = glm::lookAt(
 		glm::vec3(c_pos_x, c_pos_y, c_pos_z),  //Cam Position
-		glm::vec3(0.0f, 0.0f, 0.0f),  //Look at point
+		glm::vec3(c_pos_x + cosf(c_theta), c_pos_y + sinf(c_theta), c_pos_z),
+		//glm::vec3(c_dir_x, c_dir_x, c_dir_z),  //Look at point
 		glm::vec3(0.0f, 0.0f, 1.0f)); //Up
 		glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
 
