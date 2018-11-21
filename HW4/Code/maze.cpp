@@ -93,8 +93,7 @@ int main(int argc, char *argv[]){
 		return -1;
 	}
 	
-	//Here we will load two different model files 
-	
+// Load model files
 	//Load Model 1
 	ifstream modelFile;
 	modelFile.open("models/teapot.txt");
@@ -131,18 +130,24 @@ int main(int argc, char *argv[]){
 	printf("%d\n",numLines);
 	int numVertsCube = numLines/8;
 	modelFile.close();
-// UNFINISHED
-	
+
 	//SJG: I load each model in a different array, then concatenate everything in one big array
 	// This structure works, but there is room for improvement here. Eg., you should store the start
 	// and end of each model a data structure or array somewhere.
 	//Concatenate model arrays
-	float* modelData = new float[(numVertsTeapot+numVertsKnot)*8];
+
+	int model2Offset = numVertsTeapot*8; // offset used for model2
+	int model3Offset = model2Offset+numVertsKnot*8+numVertsCube*8;
+
+	float* modelData = new float[(numVertsTeapot+numVertsKnot+numVertsCube)*8];
 	copy(model1, model1+numVertsTeapot*8, modelData);
-	copy(model2, model2+numVertsKnot*8, modelData+numVertsTeapot*8);
-	int totalNumVerts = numVertsTeapot+numVertsKnot;
+	copy(model2, model2+numVertsKnot*8, modelData+model2Offset);
+	copy(model3, model3+numVertsCube*8, modelData+model3Offset);
+	//copy(model3, model3+numVertsCube*8, modelData+numVertsTeapot*8+numVertsCube*8);
+	int totalNumVerts = numVertsTeapot+numVertsKnot+numVertsCube;
 	int startVertTeapot = 0;  //The teapot is the first model in the VBO
 	int startVertKnot = numVertsTeapot; //The knot starts right after the taepot
+	int startVertCube = numVertsTeapot+numVertsCube;
 	
 	
 	//// Allocate Texture 0 (Wood) ///////
@@ -237,44 +242,67 @@ int main(int argc, char *argv[]){
 	glEnable(GL_DEPTH_TEST);  
 
 	printf("%s\n",INSTRUCTIONS);
+
+
+
+	// VARIABLES
+	float res = 0.1; // resolution (amount we wish to modify things by)
+	float c_pos_x = 3.0;
+	float c_pos_y = 0.0;
+	float c_pos_z = 0.0;
+	float c_theta = 0.0; // in radians from 0 to 2*3.14 or M_PI)
+
 	
 	//Event Loop (Loop forever processing each event as fast as possible)
 	SDL_Event windowEvent;
 	bool quit = false;
-	while (!quit){
-		while (SDL_PollEvent(&windowEvent)){  //inspect all events in the queue
+	while (!quit)
+	{
+		while (SDL_PollEvent(&windowEvent))
+		{  //inspect all events in the queue
 			if (windowEvent.type == SDL_QUIT) quit = true;
 			//List of keycodes: https://wiki.libsdl.org/SDL_Keycode - You can catch many special keys
 			//Scancode referes to a keyboard position, keycode referes to the letter (e.g., EU keyboards)
 			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_ESCAPE) 
 			quit = true; //Exit event loop
-		if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_f){ //If "f" is pressed
-			fullscreen = !fullscreen;
-			SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN : 0); //Toggle fullscreen 
-		}
+			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_f)
+			{ //If "f" is pressed
+				fullscreen = !fullscreen;
+				SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN : 0); //Toggle fullscreen 
+			}
 
-		//SJG: Use key input to change the state of the object
-		//     We can use the ".mod" flag to see if modifiers such as shift are pressed
-		if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_UP){ //If "up key" is pressed
-			if (windowEvent.key.keysym.mod & KMOD_SHIFT) objx -= .1; //Is shift pressed?
-			else objz += .1;
-		}
-		if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_DOWN){ //If "down key" is pressed
-			if (windowEvent.key.keysym.mod & KMOD_SHIFT) objx += .1; //Is shift pressed?
-			else objz -= .1;
-		}
-			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_LEFT){ //If "up key" is pressed
-			objy -= .1;
-		}
-		if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_RIGHT){ //If "down key" is pressed
-			objy += .1;
-		}
-		if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_c){ //If "c" is pressed
-			colR = rand01();
-			colG = rand01();
-			colB = rand01();
-		}
+			//SJG: Use key input to change the state of the object
+			//     We can use the ".mod" flag to see if modifiers such as shift are pressed
+			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_UP)
+			{ //If "up key" is pressed
+				
+				c_pos_x -= res;
 
+				//if (windowEvent.key.keysym.mod & KMOD_SHIFT) objx -= res; //Is shift pressed?
+				//else objz += res;
+			}
+			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_DOWN)
+			{ //If "down key" is pressed
+
+				c_pos_x += res;
+
+				//if (windowEvent.key.keysym.mod & KMOD_SHIFT) objx += res; //Is shift pressed?
+				//else objz -= res;
+			}
+			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_LEFT)
+			{ //If "left key" is pressed
+				objy -= res;
+			}
+			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_RIGHT)
+			{ //If "right key" is pressed
+				objy += res;
+			}
+			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_c)
+			{ //If "c" is pressed
+				colR = rand01();
+				colG = rand01();
+				colB = rand01();
+			}
 		}
       
 		// Clear the screen to default color
@@ -287,7 +315,7 @@ int main(int argc, char *argv[]){
 		timePast = SDL_GetTicks()/1000.f; 
 
 		glm::mat4 view = glm::lookAt(
-		glm::vec3(3.f, 0.f, 0.f),  //Cam Position
+		glm::vec3(c_pos_x, c_pos_y, c_pos_z),  //Cam Position
 		glm::vec3(0.0f, 0.0f, 0.0f),  //Look at point
 		glm::vec3(0.0f, 0.0f, 1.0f)); //Up
 		glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
