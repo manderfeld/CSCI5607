@@ -246,7 +246,11 @@ int main(int argc, char *argv[]){
 
 
 	// VARIABLES
-	float pos_res = 0.1; // resolution (amount we wish to modify things by)
+	bool up = false;
+	bool down = false;
+	bool left = false;
+	bool right = false;
+	float pos_res = 0.05; // resolution (amount we wish to modify things by)
 	float th_res = pos_res/5.0;
 	float c_pos_x = 3.0;
 	float c_pos_y = 0.0;
@@ -278,40 +282,69 @@ int main(int argc, char *argv[]){
 			//SJG: Use key input to change the state of the object
 			//     We can use the ".mod" flag to see if modifiers such as shift are pressed
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_UP)
-			{ //If "up key" is pressed
-				
-				c_pos_x -= pos_res;
-
-				//if (windowEvent.key.keysym.mod & KMOD_SHIFT) objx -= res; //Is shift pressed?
-				//else objz += res;
+			{
+				//If "up key" is pressed
+				up = true;
+			}
+			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_UP)
+			{
+				up = false;
 			}
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_DOWN)
-			{ //If "down key" is pressed
-
-				c_pos_x += pos_res;
-
-				//if (windowEvent.key.keysym.mod & KMOD_SHIFT) objx += res; //Is shift pressed?
-				//else objz -= res;
+			{
+				//If "down key" is pressed
+				down = true;
+			}
+			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_DOWN)
+			{
+				down = false;
 			}
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_LEFT)
-			{ //If "left key" is pressed
-				c_theta -= th_res;
-
-				//objy -= res;
+			{
+				//If "left key" is pressed
+				left = true;
+			}
+			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_LEFT)
+			{
+				left = false;
 			}
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_RIGHT)
-			{ //If "right key" is pressed
-				c_theta += th_res;
-
-				//objy += res;
+			{
+				//If "right key" is pressed
+				right = true;
+			}
+			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_RIGHT)
+			{
+				right = false;
 			}
 			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_c)
-			{ //If "c" is pressed
+			{
+				//If "c" is pressed
 				colR = rand01();
 				colG = rand01();
 				colB = rand01();
 			}
 		}
+
+		// if else for up/down
+		if (up)
+		{
+			c_pos_x -= pos_res;
+		}
+		if (down)
+		{
+			c_pos_x += pos_res;
+		}
+		if (left)
+		{
+			c_theta -= th_res;
+		}
+		if (right)
+		{
+			c_theta += th_res;
+		}
+
+
       
 		// Clear the screen to default color
 		glClearColor(.2f, 0.4f, 0.8f, 1.0f);
@@ -399,9 +432,12 @@ void drawGeometry(int shaderProgram, int model1_start, int model1_numVerts, int 
 	//Set which texture to use (0 = wood texture ... bound to GL_TEXTURE0)
 	glUniform1i(uniTexID, 0);
 
+// TEAPOT
   //Draw an instance of the model (at the position & orientation specified by the model matrix above)
-	glDrawArrays(GL_TRIANGLES, model1_start, model1_numVerts); //(Primitive Type, Start Vertex, Num Verticies)
-		
+	//glDrawArrays(GL_TRIANGLES, model1_start, model1_numVerts); //(Primitive Type, Start Vertex, Num Verticies)
+
+// THE KNOT
+/*
 	//************
 	//Draw model #2 once
 	//This model is stored in the VBO starting a offest model2_start and with model2_numVerts num of verticies
@@ -419,6 +455,8 @@ void drawGeometry(int shaderProgram, int model1_start, int model1_numVerts, int 
 
 	//Draw an instance of the model (at the position & orientation specified by the model matrix above)
 	glDrawArrays(GL_TRIANGLES, model2_start, model2_numVerts); //(Primitive Type, Start Vertex, Num Verticies)
+*/
+
 }
 
 // Create a NULL-terminated string by reading the provided file
