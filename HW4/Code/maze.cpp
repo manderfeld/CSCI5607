@@ -51,9 +51,14 @@ float timePast = 0;
 
 //SJG: Store the object coordinates
 //You should have a representation for the state of each object
+
+// Floor
+	// Size
+	float floor_sx = 10.0, floor_sy = 10.0, floor_sz = 0.2,
+		  floor_px = 0.0, floor_py = 0.0, floor_pz = -floor_sy+1.0;
+
 float objx=0, objy=0, objz=0;
 float colR=1, colG=1, colB=1;
-
 
 bool DEBUG_ON = true;
 GLuint InitShader(const char* vShaderFileName, const char* fShaderFileName);
@@ -65,7 +70,7 @@ float rand01(){
 	return rand()/(float)RAND_MAX;
 }
 
-void drawGeometry(int shaderProgram, int model1_start, int model1_numVerts, int model2_start, int model2_numVerts);
+void drawGeometry(int shaderProgram, int model1_start, int model1_numVerts, int model2_start, int model2_numVerts, int verts[]);
 
 int main(int argc, char *argv[]){
 	SDL_Init(SDL_INIT_VIDEO);  //Initialize Graphics (for OpenGL)
@@ -95,61 +100,72 @@ int main(int argc, char *argv[]){
 	
 // Load model files
 	//Load Model 1
-	ifstream modelFile;
-	modelFile.open("models/teapot.txt");
-	int numLines = 0;
-	modelFile >> numLines;
-	float* model1 = new float[numLines];
-	for (int i = 0; i < numLines; i++){
-		modelFile >> model1[i];
-	}
-	printf("%d\n",numLines);
-	int numVertsTeapot = numLines/8;
-	modelFile.close();
+		ifstream modelFile;
+		modelFile.open("models/teapot.txt");
+		int numLines = 0;
+		modelFile >> numLines;
+		float* model1 = new float[numLines];
+		for (int i = 0; i < numLines; i++)
+		{
+			modelFile >> model1[i];
+		}
+		printf("%d\n",numLines);
+		int numVertsTeapot = numLines/8;
+		modelFile.close();
 	
 	//Load Model 2
-	modelFile.open("models/knot.txt");
-	numLines = 0;
-	modelFile >> numLines;
-	float* model2 = new float[numLines];
-	for (int i = 0; i < numLines; i++){
-		modelFile >> model2[i];
-	}
-	printf("%d\n",numLines);
-	int numVertsKnot = numLines/8;
-	modelFile.close();
+		modelFile.open("models/knot.txt");
+		numLines = 0;
+		modelFile >> numLines;
+		float* model2 = new float[numLines];
+		for (int i = 0; i < numLines; i++)
+		{
+			modelFile >> model2[i];
+		}
+		printf("%d\n",numLines);
+		int numVertsKnot = numLines/8;
+		modelFile.close();
 
 	//Load Model 3
-	modelFile.open("models/cube.txt");
-	numLines = 0;
-	modelFile >> numLines;
-	float* model3 = new float[numLines];
-	for (int i = 0; i < numLines; i++){
-		modelFile >> model3[i];
-	}
-	printf("%d\n",numLines);
-	int numVertsCube = numLines/8;
-	modelFile.close();
+		modelFile.open("models/cube.txt");
+		numLines = 0;
+		modelFile >> numLines;
+		float* model3 = new float[numLines];
+		for (int i = 0; i < numLines; i++)
+		{
+			modelFile >> model3[i];
+		}
+		printf("%d\n",numLines);
+		int numVertsCube = numLines/8;
+		modelFile.close();
 
 	//SJG: I load each model in a different array, then concatenate everything in one big array
 	// This structure works, but there is room for improvement here. Eg., you should store the start
 	// and end of each model a data structure or array somewhere.
 	//Concatenate model arrays
+		int model2Offset = numVertsTeapot*8; // offset used for model2
+		int model3Offset = model2Offset+numVertsKnot*8;
 
-	int model2Offset = numVertsTeapot*8; // offset used for model2
-	int model3Offset = model2Offset+numVertsKnot*8+numVertsCube*8;
+		float* modelData = new float[(numVertsTeapot+numVertsKnot+numVertsCube)*8];
+		copy(model1, model1+numVertsTeapot*8, modelData);
+		copy(model2, model2+numVertsKnot*8, modelData+model2Offset);
+		copy(model3, model3+numVertsCube*8, modelData+model3Offset);
+		int totalNumVerts = numVertsTeapot+numVertsKnot+numVertsCube;
 
-	float* modelData = new float[(numVertsTeapot+numVertsKnot+numVertsCube)*8];
-	copy(model1, model1+numVertsTeapot*8, modelData);
-	copy(model2, model2+numVertsKnot*8, modelData+model2Offset);
-	copy(model3, model3+numVertsCube*8, modelData+model3Offset);
-	//copy(model3, model3+numVertsCube*8, modelData+numVertsTeapot*8+numVertsCube*8);
-	int totalNumVerts = numVertsTeapot+numVertsKnot+numVertsCube;
-	int startVertTeapot = 0;  //The teapot is the first model in the VBO
-	int startVertKnot = numVertsTeapot; //The knot starts right after the taepot
-	int startVertCube = numVertsTeapot+numVertsCube;
-	
-	
+		// Put these into an array for startVerts and numVerts of all the models
+		int startVertTeapot = 0;  //The teapot is the first model in the VBO
+		int startVertKnot = numVertsTeapot; //The knot starts right after the taepot
+		int startVertCube = numVertsTeapot + numVertsKnot;
+
+		int modelList[3*2]; //make an array the size (number of models)*2 since storing 2 data points for each moel
+		// find a better way to do this, for now hard coding
+		modelList[0] = startVertTeapot;
+		modelList[1] = numVertsTeapot;
+		modelList[2] = startVertKnot;
+		modelList[3] = numVertsKnot;
+		modelList[4] = startVertCube;
+		modelList[5] = numVertsCube;
+
 	//// Allocate Texture 0 (Wood) ///////
 	SDL_Surface* surface = SDL_LoadBMP("wood.bmp");
 	if (surface==NULL){ //If it failed, print the error
@@ -238,29 +254,25 @@ int main(int argc, char *argv[]){
 
 	glBindVertexArray(0); //Unbind the VAO in case we want to create a new one	
                        
-	
 	glEnable(GL_DEPTH_TEST);  
 
 	printf("%s\n",INSTRUCTIONS);
 
-
-
 	// VARIABLES
-	bool up = false;
-	bool down = false;
-	bool left = false;
-	bool right = false;
-	float pos_res = 0.05; // resolution (amount we wish to modify things by)
-	float th_res = pos_res/5.0;
-	float c_pos_x = 3.0;
-	float c_pos_y = 0.0;
-	float c_pos_z = 0.0;
-	float c_dir_x = 0.0;
-	float c_dir_y = 0.0;
-	float c_dir_z = 1.0;
-	float c_theta = M_PI; // in radians from 0 to 2*3.14 or M_PI)
+		bool up = false;
+		bool down = false;
+		bool left = false;
+		bool right = false;
+		float pos_res = 0.05; // resolution (amount we wish to modify things by)
+		float th_res = pos_res/5.0;
+		float c_pos_x = 3.0;
+		float c_pos_y = 0.0;
+		float c_pos_z = 0.0;
+		float c_dir_x = 0.0;
+		float c_dir_y = 0.0;
+		float c_dir_z = 1.0;
+		float c_theta = M_PI; // in radians from 0 to 2*3.14 or M_PI)
 
-	
 	//Event Loop (Loop forever processing each event as fast as possible)
 	SDL_Event windowEvent;
 	bool quit = false;
@@ -337,34 +349,30 @@ int main(int argc, char *argv[]){
 		}
 		if (left)
 		{
-			c_theta -= th_res;
+			c_theta += th_res;
 		}
 		if (right)
 		{
-			c_theta += th_res;
+			c_theta -= th_res;
 		}
 
-
-      
 		// Clear the screen to default color
 		glClearColor(.2f, 0.4f, 0.8f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram(texturedShader);
 
-
 		timePast = SDL_GetTicks()/1000.f; 
 		// Have camera look at stuff
 		glm::mat4 view = glm::lookAt(
 		glm::vec3(c_pos_x, c_pos_y, c_pos_z),  //Cam Position
 		glm::vec3(c_pos_x + cosf(c_theta), c_pos_y + sinf(c_theta), c_pos_z),
-		//glm::vec3(c_dir_x, c_dir_x, c_dir_z),  //Look at point
 		glm::vec3(0.0f, 0.0f, 1.0f)); //Up
 		glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
 
-		glm::mat4 proj = glm::perspective(3.14f/4, screenWidth / (float) screenHeight, 1.0f, 10.0f); //FOV, aspect, near, far
+	// may have to change the value of far if the maze is huge
+		glm::mat4 proj = glm::perspective(3.14f/4, screenWidth / (float) screenHeight, 0.01f, 100.0f); //FOV, aspect, near, far
 		glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(proj));
-
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, tex0);
@@ -375,7 +383,7 @@ int main(int argc, char *argv[]){
 		glUniform1i(glGetUniformLocation(texturedShader, "tex1"), 1);
 
 		glBindVertexArray(vao);
-		drawGeometry(texturedShader, startVertTeapot, numVertsTeapot, startVertKnot, numVertsKnot);
+		drawGeometry(texturedShader, startVertTeapot, numVertsTeapot, startVertKnot, numVertsKnot, modelList);
 
 		SDL_GL_SwapWindow(window); //Double buffering
 	}
@@ -390,24 +398,43 @@ int main(int argc, char *argv[]){
 	return 0;
 }
 
-void drawGeometry(int shaderProgram, int model1_start, int model1_numVerts, int model2_start, int model2_numVerts){
-	
+void drawGeometry(int shaderProgram, int model1_start, int model1_numVerts, int model2_start, int model2_numVerts, int verts[])
+{
+	// verts[0] model 1 start
+	// verts[2] model 2 start
+	// verts[4] model 3 start
+
 	GLint uniColor = glGetUniformLocation(shaderProgram, "inColor");
 	glm::vec3 colVec(colR,colG,colB);
 	glUniform3fv(uniColor, 1, glm::value_ptr(colVec));
-      
-  GLint uniTexID = glGetUniformLocation(shaderProgram, "texID");
-	  
+
+	GLint uniTexID = glGetUniformLocation(shaderProgram, "texID");
+
+	// Floor
+		glm::mat4 model;
+		//glm::scale(model,glm::vec3(1.0f,1.0f,1.0f));
+		//model = glm::translate(model,glm::vec3(0.0,0.0,0.0));
+		model = glm::scale(model, glm::vec3(floor_sx, floor_sy, floor_sz)); //scale this model
+		model = glm::translate(model, glm::vec3(floor_px, floor_py, floor_pz));
+		GLint uniModel = glGetUniformLocation(shaderProgram, "model");
+		//Set which texture to use (1 = brick texture ... bound to GL_TEXTURE1)
+		glUniform1i(uniTexID, -1); 
+		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
+
+		//Draw an instance of the model (at the position & orientation specified by the model matrix above)
+		glDrawArrays(GL_TRIANGLES, verts[4], verts[5]); //(Primitive Type, Start Vertex, Num Verticies)
+
 	//************
 	//Draw model #1 the first time
 	//This model is stored in the VBO starting a offest model1_start and with model1_numVerts num of verticies
 	//*************
-
+  	/*
 	//Rotate model (matrix) based on how much time has past
 	glm::mat4 model;
 	model = glm::rotate(model,timePast * 3.14f/2,glm::vec3(0.0f, 1.0f, 1.0f));
 	model = glm::rotate(model,timePast * 3.14f/4,glm::vec3(1.0f, 0.0f, 0.0f));
 	//model = glm::scale(model,glm::vec3(.2f,.2f,.2f)); //An example of scale
+	model = glm::scale(model,glm::vec3(2.0f,2.0f,2.0f)); //An example of scale
 	GLint uniModel = glGetUniformLocation(shaderProgram, "model");
 	glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model)); //pass model matrix to shader
 
@@ -416,7 +443,7 @@ void drawGeometry(int shaderProgram, int model1_start, int model1_numVerts, int 
 
 	//Draw an instance of the model (at the position & orientation specified by the model matrix above)
 	glDrawArrays(GL_TRIANGLES, model1_start, model1_numVerts); //(Primitive Type, Start Vertex, Num Verticies)
-	
+	*/
 	
 	//************
 	//Draw model #1 the second time
@@ -424,6 +451,7 @@ void drawGeometry(int shaderProgram, int model1_start, int model1_numVerts, int 
 	//*************
 
 	//Translate the model (matrix) left and back
+	/*
 	model = glm::mat4(); //Load intentity
 	model = glm::translate(model,glm::vec3(-2,-1,-.4));
 	//model = glm::scale(model,2.f*glm::vec3(1.f,1.f,0.5f)); //scale example
@@ -431,7 +459,7 @@ void drawGeometry(int shaderProgram, int model1_start, int model1_numVerts, int 
 
 	//Set which texture to use (0 = wood texture ... bound to GL_TEXTURE0)
 	glUniform1i(uniTexID, 0);
-
+	*/
 // TEAPOT
   //Draw an instance of the model (at the position & orientation specified by the model matrix above)
 	//glDrawArrays(GL_TRIANGLES, model1_start, model1_numVerts); //(Primitive Type, Start Vertex, Num Verticies)
