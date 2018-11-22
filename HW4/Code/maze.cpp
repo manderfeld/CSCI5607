@@ -454,23 +454,39 @@ float c_pos_xi, c_pos_yi;
 				// lr    is x+1, y-1
 				// right is x+1, y
 				// ur    is x+1, y+1
-
+cout << "*****" << endl;
 			for (signed int dx = -1; dx < 2; dx++)
 			{
 				for (signed int dy = -1; dy < 2; dy++)
 				{
-					if ( (dx==0) && (dy==0) )
-						{continue;} // theoretically this is where we are. ignore
+
+				cout << "\t dx, dy " << dx << " , " << dy << endl;
+					if ( (dx==0) || (dy==0) )
+						{continue;} // ignore
+					// If things are weird.. check this (from the lua game seudo code)
 					int i = floor(c_pos_x + playerRadius*dx);
 					int j = floor(c_pos_y + playerRadius+dy);
 
-					if( (i < 0) || (j < 0) || (i > map_w) || (j > map_h) )
+					if( (i < 1) || (j < 1) || (i > map_w) || (j > map_h) )
 					{
-						//ret = false;
+						ret = false;
 					}
-				
+
+				cout << "\t" << i << " , " << j << endl;
+					if ( (i>0)&&(i<map_h)&&(j>0)&&(j<map_w) ) 
+					{
+						vector< pair<int, char> > row = bigMap[i];
+						pair<int,char> coord = row[j];
+						char let = coord.second;
+						if(let == 'W')
+						{
+							ret = false;
+						}
+					}
+
 				}
 			}
+cout << "*****" << endl;
 			
 			if (!ret) // if not walkable, do not allow movement
 			{
