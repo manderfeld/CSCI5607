@@ -57,8 +57,8 @@ float timePast = 0;
 
 // Floor
 	// Size
-	float floor_sx = 10.0, floor_sy = 10.0, floor_sz = 0.2,
-		  floor_px = 0.0, floor_py = 0.0, floor_pz = -floor_sy+1.0;
+	float floor_sx = 10.0, floor_sy = 10.0, floor_sz = 0.1,
+		  floor_px = 0.0, floor_py = 0.0, floor_pz = -5.0;
 
 //float objx=0, objy=0, objz=0;
 float colR=1, colG=1, colB=1;
@@ -73,56 +73,11 @@ float rand01(){
 	return rand()/(float)RAND_MAX;
 }
 
+void addModel(int shaderProgram, int verts[], int num, float x, float y, float z);
 void drawGeometry(int shaderProgram, int verts[]);
 
 int main(int argc, char *argv[])
 {
-
-// TODO: could probably work in a class structure of some sort to store all of these variables in a much better way
-// Setting up variables
-// Map
-	int map_w, map_h;
-	/*
-	int s_x = 0; // player start x
-	int s_y = 0; // player start y
-	
-	// keeping track of objects and where they are
-	vector<xy> walls;
-	xy doors[5]; // set number of doors
-		// initialize to -1, 
-	xy keys[5]; // set number of keys
-	*/
-
-// Open the level file
-	// start by putting each line in a vector of strings (each line is in its own row)
-	// then go through each row and assign coordinates based on row and col where col is placement of character in line
-
-	// TODO: find a more efficient way to do this
-
-	vector<string> lines;
-	cout << "* BEGIN FILE INPUT" << endl;
-	cout << "\tReading file: " << argv[1] << endl;
-	ifstream input(argv[1]);
-
-	// Check for errors opening the file
-		if(input.fail())
-		{
-			cout << "\tCannot open file: '" << argv[1] << "'" << endl;
-			return 0;
-		}
-	// First off, get width and height
-		input >> map_w >> map_h;
-		cout << "\tMaking map (w,h):  (" << map_w << ", " << map_h << " )" << endl;
-	// Loop through reading each line and put it in the lines vector
-		string line;
-		while(input >> line)
-		{
-			lines.push_back(line);
-		}
-	cout << "* END FILE INPUT" << endl;
-
-
-
 	SDL_Init(SDL_INIT_VIDEO);  //Initialize Graphics (for OpenGL)
 	//Ask SDL to get a recent version of OpenGL (3.2 or greater)
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -306,6 +261,76 @@ int main(int argc, char *argv[])
 
 	printf("%s\n",INSTRUCTIONS);
 
+/////////////////////////////////////////////////
+// TODO: could probably work in a class structure of some sort to store all of these variables in a much better way
+// Setting up variables
+// Map
+	int map_w, map_h;
+// Open the level file
+	// start by putting each line in a vector of strings (each line is in its own row)
+	// then go through each row and assign coordinates based on row and col where col is placement of character in line
+
+	// TODO: find a more efficient way to do this
+
+	//vector<string> lines;
+	cout << "* BEGIN FILE INPUT" << endl;
+	cout << "\tReading file: " << argv[1] << endl;
+	ifstream input(argv[1]);
+
+	// Check for errors opening the file
+		if(input.fail())
+		{
+			cout << "\tCannot open file: '" << argv[1] << "'" << endl;
+			return 0;
+		}
+	// First off, get width and height
+		input >> map_w >> map_h;
+		cout << "\tMaking map (w,h):  (" << map_w << ", " << map_h << " )" << endl;
+
+	// Loop through reading each line and put it in the lines vector
+		string line;
+		while(input >> line)
+		{
+			// Within each line, go through each char
+
+			for (int i = 0; i < map_w; i++)
+			{
+				// If a line is longer than width (shouldn't be possible, would give an out of bounds error)
+				// disregard it
+				if (line.length() > map_w)
+				{
+					continue;
+				}
+				char let = line[i];
+				// Wall  is W
+				// Door  is A-E
+				// Key   is a-e
+				// 0     is open (we don't do anything)
+				if (let == 'W') // Wall
+				{
+					// add wall at position x+.5, y+.5, z
+				}
+				else if ( (let >= 'A') && (let <= 'E') ) // if it's between inclusive A and E then it's a Door
+				{
+
+				}
+				else if ( (let >= 'a') && (let <= 'e') ) // if it's between inclusive a and e then it's a key
+				{
+
+				}
+				else // we don't care
+				{
+					continue;
+				}
+			}
+
+			//lines.push_back(line);
+		}
+	cout << "* END FILE INPUT" << endl;
+/////////////////////////////////////////////////
+
+
+
 	// VARIABLES
 		bool up = false;
 		bool down = false;
@@ -389,11 +414,13 @@ int main(int argc, char *argv[])
 		// if else for up/down
 		if (up)
 		{
-			c_pos_x -= pos_res;
+			c_pos_x += pos_res*cosf(c_theta);
+			c_pos_y += pos_res*sinf(c_theta);
 		}
 		if (down)
 		{
-			c_pos_x += pos_res;
+			c_pos_x -= pos_res*cosf(c_theta);
+			c_pos_y -= pos_res*sinf(c_theta);
 		}
 		if (left)
 		{
@@ -431,19 +458,42 @@ int main(int argc, char *argv[])
 		glUniform1i(glGetUniformLocation(texturedShader, "tex1"), 1);
 
 		glBindVertexArray(vao);
+
+		addModel(texturedShader, modelList, 0, 0.0, 0.0, 0.0);
 		drawGeometry(texturedShader, modelList);
 
 		SDL_GL_SwapWindow(window); //Double buffering
 	}
 	
 	//Clean Up
-	glDeleteProgram(texturedShader);
-    glDeleteBuffers(1, vbo);
-    glDeleteVertexArrays(1, &vao);
-
-	SDL_GL_DeleteContext(context);
-	SDL_Quit();
+		glDeleteProgram(texturedShader);
+    	glDeleteBuffers(1, vbo);
+    	glDeleteVertexArrays(1, &vao);
+		SDL_GL_DeleteContext(context);
+		SDL_Quit();
 	return 0;
+}
+
+void addModel(int shaderProgram, int verts[], int num, float x, float y, float z)
+{
+	GLint uniColor = glGetUniformLocation(shaderProgram, "inColor");
+	glm::vec3 colVec(colR,colG,colB);
+	glUniform3fv(uniColor, 1, glm::value_ptr(colVec));
+
+	GLint uniTexID = glGetUniformLocation(shaderProgram, "texID");
+
+	glm::mat4 model;
+	//glm::scale(model,glm::vec3(1.0f,1.0f,1.0f));
+	//model = glm::translate(model,glm::vec3(0.0,0.0,0.0));
+	model = glm::scale(model, glm::vec3(1.0, 1.0, 1.0)); //scale this model
+	model = glm::translate(model, glm::vec3(x, y, z));
+	GLint uniModel = glGetUniformLocation(shaderProgram, "model");
+	//Set which texture to use (1 = brick texture ... bound to GL_TEXTURE1)
+	glUniform1i(uniTexID, 0); 
+	glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
+
+	//Draw an instance of the model (at the position & orientation specified by the model matrix above)
+	glDrawArrays(GL_TRIANGLES, verts[4], verts[5]); //(Primitive Type, Start Vertex, Num Verticies)
 }
 
 void drawGeometry(int shaderProgram, int verts[])
