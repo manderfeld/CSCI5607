@@ -77,7 +77,7 @@ void makeLevel(int texturedShader, int modelList[], map<int, vector< pair<int, c
 void makeMapOld(int texturedShader, int modelList[], char** ret, int w, int h);
 void parseInput(int texturedShared, int modelList[], vector<string> input, int w, int h, float arr[]);
 void addFloor(int shaderProgram, int verts[], int w, int h, float x, float y, float z);
-void addModel(int shaderProgram, int verts[], int mod, int tex, float x, float y, float z);
+void addModel(int shaderProgram, int verts[], int mod, int tex, float w, float h, float d, float x, float y, float z);
 void drawGeometry(int shaderProgram, int verts[]);
 
 GLuint texture(const char* input)
@@ -339,6 +339,7 @@ float pos_res = 0.05, // resolution (amount we wish to modify things by)
 
 float c_pos_x = arr[0], c_pos_y = arr[1], c_pos_z, c_dir_x, c_dir_y, c_dir_z, c_theta = M_PI;
 float c_pos_xi, c_pos_yi;
+
 /////////////////////////////////////////////////
 
 	//Event Loop (Loop forever processing each event as fast as possible)
@@ -556,10 +557,7 @@ void makeMap(vector<string> input, map<int, vector< pair<int, char> > > &bigMap,
 void makeLevel(int texturedShader, int modelList[], map<int, vector< pair<int, char> > >bigMap, int w, int h)
 {
 
-
-	float floorw = w;
-	float floorh = h;
-	float floorx, floory;
+	/*
 //good
 	if (      (w%2==0)&&(h%2==0) )
 	{
@@ -583,34 +581,72 @@ void makeLevel(int texturedShader, int modelList[], map<int, vector< pair<int, c
 	{
 		floorx = w/2+0.5;
 		floory = h/2-0.5;
-	}
-	addFloor(texturedShader, modelList, floorw, floorh, floorx, floory, -0.5);
-	//addFloor(texturedShader, modelList, w, h, w/2+0.5, h/2-0.5, -0.5);
+	}*/
+	//addFloor(texturedShader, modelList, floorw, floorh, floorx, floory, -0.5);
+	//addFloor(texturedShader, modelList, w, h, w/2+0.5, h/2-0.5, 0.0);
+	
+	//cout << "  Floor: (w,h) " << floorw << " , " << floorh << endl;
+	
+	float floorw = (float)w;
+	float floorh = (float)h;
+	float floorx, floory;
+
+	floorx = floorw/2;
+	floory = floorh/2-0.5;
+
+
+	//floorx = 0;
+	//floory = 0;
+
+	//addModel(texturedShader, modelList, 2, 0, 3.0, 1.0, 1.0, 0+2.5, -(0+1.0), -1.0);
+	//addModel(texturedShader, modelList, 2, 1, 2.0, 1.0, 1.0, 0, 0, -1.0);
+
+	//addModel(texturedShader, modelList, 2, 0, 2.0, 2.0, 1.0, 0+2, 0+2, -1.0);
+	
+
+	addModel(texturedShader, modelList, 2, 1, floorw, floorh, 1.0, floorx, floory+0.5, -1.0);
+
+	//addModel(texturedShader, modelList, 2, 1, 2.0, 1.0, 1.0, floorx, floory, -1.0);
+
 	float z = 0.0;
 
 	for (map<int, vector< pair<int, char> > >::iterator it = bigMap.begin(); it != bigMap.end(); it++)
 	{
-		int x = it->first;
+		int y = it->first;
+		//cout << "Row, col: " << x << " , ";
 		vector< pair<int, char> > val = it->second;
 		for (vector< pair<int, char> >::iterator itt = val.begin(); itt != val.end(); itt++)
 		{
-			int y = itt->first;
+			int x = itt->first;
 			char let = itt->second;
+			//cout << y << "  making  " << let << endl;
 			// Wall  is W
 			// Door  is A-E
 			// Key   is a-e
 			// 0     is open (we don't do anything)
 			if (let == 'W')
 			{
-				addModel(texturedShader, modelList, 2, 0, x+0.5, y-0.5, z);
+
+
+				if ((x==0)&&(y==0))
+				{
+					addModel(texturedShader, modelList, 2, -1, 1, 1, 1, x+0.5, y+0.5, z);
+				}
+				else
+				{
+				addModel(texturedShader, modelList, 2, 0, 1, 1, 1, x+0.5, y+0.5, z);
+				}
+
+
+
 			}
 			else if ( (let >= 'A') && (let <= 'E') ) // if it's between inclusive A and E then it's a Door
 			{
-				addModel(texturedShader, modelList, 0, -1, x+0.5, y-0.5, z);
+				addModel(texturedShader, modelList, 0, -1, 1, 1, 1, x+0.5, y+0.5, z);
 			}
 			else if ( (let >= 'a') && (let <= 'e') ) // if it's between inclusive a and e then it's a key
 			{
-				addModel(texturedShader, modelList, 1, -1, x+0.5, y-0.5, z);
+				addModel(texturedShader, modelList, 1, -1, 1, 1, 1, x+0.5, y+0.5, z);
 			}
 			else if (let == 'G')
 			{
@@ -626,9 +662,12 @@ void makeLevel(int texturedShader, int modelList[], map<int, vector< pair<int, c
 			}
 		}
 	}
+
 }
 
+
 // makes the map given a 2D array that represents the level
+/*
 void makeMapOld(int texturedShader, int modelList[], char** ret, int w, int h)
 {
 	if (w%2 == 0)
@@ -678,7 +717,8 @@ void makeMapOld(int texturedShader, int modelList[], char** ret, int w, int h)
 		}
 	}
 }
-
+*/
+/*
 void parseInput(int texturedShader, int modelList[], vector<string>input, int w, int h, float arr[])
 {
 	// Set the floor
@@ -749,6 +789,7 @@ void parseInput(int texturedShader, int modelList[], vector<string>input, int w,
 			}
 	}
 }
+*/
 
 void addFloor(int shaderProgram, int verts[], int w, int h, float x, float y, float z)
 {
@@ -760,10 +801,11 @@ void addFloor(int shaderProgram, int verts[], int w, int h, float x, float y, fl
 	GLint uniTexID = glGetUniformLocation(shaderProgram, "texID");
 
 	glm::mat4 model;
+		// Scale
+		model = glm::scale(model, glm::vec3(w, h, 0.1));
 	// Translate
 		model = glm::translate(model, glm::vec3(x, y, z));
-	// Scale
-		model = glm::scale(model, glm::vec3(w, h, 0.1));
+
 	
 	GLint uniModel = glGetUniformLocation(shaderProgram, "model");
 	//Set which texture to use (1 = brick texture ... bound to GL_TEXTURE1)
@@ -774,14 +816,16 @@ void addFloor(int shaderProgram, int verts[], int w, int h, float x, float y, fl
 		glDrawArrays(GL_TRIANGLES, verts[4], verts[5]); //(Primitive Type, Start Vertex, Num Verticies)
 }
 
-void addModel(int shaderProgram, int verts[], int mod, int tex, float x, float y, float z)
+void addModel(int shaderProgram, int verts[], int mod, int tex, float w, float h, float d, float x, float y, float z)
 {
 	GLint uniTexID = glGetUniformLocation(shaderProgram, "texID");
 	glm::mat4 model;
-	// Translate
+
+		// Translate
 		model = glm::translate(model, glm::vec3(x, y, z));
 	// Scale
-		model = glm::scale(model, glm::vec3(1.0, 1.0, 1.0));
+		model = glm::scale(model, glm::vec3(w, h, d));
+
 	GLint uniModel = glGetUniformLocation(shaderProgram, "model");
 	//Set which texture to use (1 = brick texture ... bound to GL_TEXTURE1)
 		glUniform1i(uniTexID, tex); 
