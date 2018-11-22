@@ -55,9 +55,6 @@ float timePast = 0;
 //SJG: Store the object coordinates
 //You should have a representation for the state of each object
 
-//float objx=0, objy=0, objz=0;
-float colR=1, colG=1, colB=1;
-
 bool DEBUG_ON = true;
 GLuint InitShader(const char* vShaderFileName, const char* fShaderFileName);
 bool fullscreen = false;
@@ -68,6 +65,16 @@ float rand01(){
 	return rand()/(float)RAND_MAX;
 }
 
+// Doors and keys
+// TODO: make these not globals. Maybe classes?
+bool door[5]; // array of possible doors. element at index i will be true when there is a door
+bool key[5]; // likewise but y'know for keys
+	// Colors of doors and keys
+	char colors[5] = {'r' , 'g' , 'b', 'c', 'm'};
+
+// Player attributes and related variables
+int activeKeyType = 0; // change to material of active key
+vector<int> items; // store list of int representing keys
 
 float playerRadius = .2;
 float pickupRadius = .22;
@@ -77,7 +84,7 @@ void makeLevel(int texturedShader, int modelList[], map<int, vector< pair<int, c
 void makeMapOld(int texturedShader, int modelList[], char** ret, int w, int h);
 void parseInput(int texturedShared, int modelList[], vector<string> input, int w, int h, float arr[]);
 void addFloor(int shaderProgram, int verts[], int w, int h, float x, float y, float z);
-void addModel(int shaderProgram, int verts[], int mod, int tex, float w, float h, float d, float x, float y, float z);
+void addModel(int shaderProgram, int verts[], int mod, int tex, int clr, float w, float h, float d, float x, float y, float z);
 void drawGeometry(int shaderProgram, int verts[]);
 
 GLuint texture(const char* input)
@@ -401,13 +408,6 @@ float c_pos_xi, c_pos_yi;
 			{
 				right = false;
 			}
-			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_c)
-			{
-				//If "c" is pressed
-				colR = rand01();
-				colG = rand01();
-				colB = rand01();
-			}
 		}
 
 		// if/elses for whether the key is going from  pressed->released  or  not pressed->pressed
@@ -454,13 +454,10 @@ float c_pos_xi, c_pos_yi;
 				// lr    is x+1, y-1
 				// right is x+1, y
 				// ur    is x+1, y+1
-cout << "*****" << endl;
 			for (signed int dx = -1; dx < 2; dx++)
 			{
 				for (signed int dy = -1; dy < 2; dy++)
 				{
-
-				cout << "\t dx, dy " << dx << " , " << dy << endl;
 					if ( (dx==0) || (dy==0) )
 						{continue;} // ignore
 					// If things are weird.. check this (from the lua game seudo code)
@@ -471,8 +468,6 @@ cout << "*****" << endl;
 					{
 						ret = false;
 					}
-
-				cout << "\t" << i << " , " << j << endl;
 					if ( (i>0)&&(i<map_h)&&(j>0)&&(j<map_w) ) 
 					{
 						vector< pair<int, char> > row = bigMap[i];
@@ -486,7 +481,6 @@ cout << "*****" << endl;
 
 				}
 			}
-cout << "*****" << endl;
 			
 			if (!ret) // if not walkable, do not allow movement
 			{
@@ -526,12 +520,6 @@ cout << "*****" << endl;
 		init = false;
 	}
 
-	/*for (int x = 0; x < map_w; x++)
-	{
-		free(mapGrid[x]);
-	}
-	free(mapGrid);*/
-	
 	//Clean Up
 		glDeleteProgram(texturedShader);
     	glDeleteBuffers(1, vbo);
@@ -572,37 +560,6 @@ void makeMap(vector<string> input, map<int, vector< pair<int, char> > > &bigMap,
 
 void makeLevel(int texturedShader, int modelList[], map<int, vector< pair<int, char> > >bigMap, int w, int h)
 {
-
-	/*
-//good
-	if (      (w%2==0)&&(h%2==0) )
-	{
-		floorx = w/2;
-		floory = h/2-1.0;
-	}
-	//not done
-	else if ( (w%2==0)&&(h%2!=0) )
-	{
-		floorx = floorw/2;
-		floory = floorh/2;
-	}
-	// not done
-	else if ( (w%2!=0)&&(h%2==0) )
-	{
-		floorx = floorw/2;
-		floory = floorh/2;
-	}
-//good
-	else if ( (w%2!=0)&&(h%2!=0) )
-	{
-		floorx = w/2+0.5;
-		floory = h/2-0.5;
-	}*/
-	//addFloor(texturedShader, modelList, floorw, floorh, floorx, floory, -0.5);
-	//addFloor(texturedShader, modelList, w, h, w/2+0.5, h/2-0.5, 0.0);
-	
-	//cout << "  Floor: (w,h) " << floorw << " , " << floorh << endl;
-	
 	float floorw = (float)w;
 	float floorh = (float)h;
 	float floorx, floory;
@@ -610,19 +567,7 @@ void makeLevel(int texturedShader, int modelList[], map<int, vector< pair<int, c
 	floorx = floorw/2;
 	floory = floorh/2-0.5;
 
-
-	//floorx = 0;
-	//floory = 0;
-
-	//addModel(texturedShader, modelList, 2, 0, 3.0, 1.0, 1.0, 0+2.5, -(0+1.0), -1.0);
-	//addModel(texturedShader, modelList, 2, 1, 2.0, 1.0, 1.0, 0, 0, -1.0);
-
-	//addModel(texturedShader, modelList, 2, 0, 2.0, 2.0, 1.0, 0+2, 0+2, -1.0);
-	
-
-	addModel(texturedShader, modelList, 2, 1, floorw, floorh, 1.0, floorx, floory+0.5, -1.0);
-
-	//addModel(texturedShader, modelList, 2, 1, 2.0, 1.0, 1.0, floorx, floory, -1.0);
+	addModel(texturedShader, modelList, 2, 1, 0, floorw, floorh, 1.0, floorx, floory+0.5, -1.0);
 
 	float z = 0.0;
 
@@ -636,204 +581,72 @@ void makeLevel(int texturedShader, int modelList[], map<int, vector< pair<int, c
 			int x = itt->first;
 			char let = itt->second;
 			//cout << y << "  making  " << let << endl;
-			// Wall  is W
-			// Door  is A-E
-			// Key   is a-e
-			// 0     is open (we don't do anything)
-			if (let == 'W')
-			{
-
-
-				if ((x==0)&&(y==0))
-				{
-					addModel(texturedShader, modelList, 2, -1, 1, 1, 1, x+0.5, y+0.5, z);
-				}
-				else
-				{
-				addModel(texturedShader, modelList, 2, 0, 1, 1, 1, x+0.5, y+0.5, z);
-				}
-
-
-
-			}
-			else if ( (let >= 'A') && (let <= 'E') ) // if it's between inclusive A and E then it's a Door
-			{
-				addModel(texturedShader, modelList, 0, -1, 1, 1, 1, x+0.5, y+0.5, z);
-			}
-			else if ( (let >= 'a') && (let <= 'e') ) // if it's between inclusive a and e then it's a key
-			{
-				addModel(texturedShader, modelList, 1, -1, 1, 1, 1, x+0.5, y+0.5, z);
-			}
-			else if (let == 'G')
-			{
-				// TODO!!! USE THE SPHERE AS THE END POINT
-			}
-			else if (let == 'S')
-			{
-				continue; // should have already taken care of this
-			}
-			else
-			{
-				// we don't care
-			}
-		}
-	}
-
-}
-
-
-// makes the map given a 2D array that represents the level
-/*
-void makeMapOld(int texturedShader, int modelList[], char** ret, int w, int h)
-{
-	if (w%2 == 0)
-	{
-		w += 1.0;
-	}
-	if (h%2 == 0)
-	{
-		h += 1.0;
-	}
-	addFloor(texturedShader, modelList, w, h, w/2+0.5, h/2-0.5, -0.5);
-	float z = 0.0;
-	for (int x = 0; x < w; x++)
-	{
-		for (int y = 0; y < h; y++)
-		{
-			char let = ret[x][y];
-			// Wall  is W
-			// Door  is A-E
-			// Key   is a-e
-			// 0     is open (we don't do anything)
-			if (let == 'W')
-			{
-				addModel(texturedShader, modelList, 2, 0, x+0.5, y-0.5, z);
-			}
-			else if ( (let >= 'A') && (let <= 'E') ) // if it's between inclusive A and E then it's a Door
-			{
-				addModel(texturedShader, modelList, 0, -1, x+0.5, y-0.5, z);
-			}
-			else if ( (let >= 'a') && (let <= 'e') ) // if it's between inclusive a and e then it's a key
-			{
-				addModel(texturedShader, modelList, 1, -1, x+0.5, y-0.5, z);
-			}
-			else if (let == 'G')
-			{
-				// TODO!!! USE THE SPHERE AS THE END POINT
-			}
-			else if (let == 'S')
-			{
-				continue; // should have already taken care of this
-			}
-			else
-			{
-				// we don't care
-			}
-
-		}
-	}
-}
-*/
-/*
-void parseInput(int texturedShader, int modelList[], vector<string>input, int w, int h, float arr[])
-{
-	// Set the floor
-	// make (0,0) the upper left corner by offsetting the floor
-		if (w%2 == 0) // width is odd
-		{
-			w+=1.0;
-		}
-		if (h%2 == 0)
-		{
-			h+=1.0;
-		}
-		addFloor(texturedShader, modelList, w, h, w/2+0.5, h/2-0.5, -0.5);
-
-	// value of z used for all models (since they just need to be above the floor)
-	float z = 0.0;
-
-	// Adding a model
-	//addModel(texturedShader, modelList, 2, 0, 0.0, 0.0, 0.0);
-									 // ^ model, then texture. 0=teapot, 1=knot, 2=cube;  -1=nothing, 0=wood, 1=brick
-
-	// Go through the rest of the file
-	// Iterate through each line
-	for (int it = 0; it < input.size(); it++)
-	{
-		string row = input[it];
-		// Iterate through each character
-		for (int i = 0; i < w; i++)
-			{
-				// If a line is longer than width (shouldn't be possible, would give an out of bounds error)
-				// disregard it
-				if (row.length() > w)
-				{
-					continue;
-				}
-				char let = row[i];
 				// Wall  is W
 				// Door  is A-E
 				// Key   is a-e
 				// 0     is open (we don't do anything)
-				if (let == 'W') // Wall
-				{
-					// add wall at position x+.5, y+.5
-					addModel(texturedShader, modelList, 2, 0, it+0.5, i-0.5, z);
-				}
-				else if (let == 'S') // start
-				{
-					arr[0] = it+0.5;
-					arr[1] = i-0.5;
-				}
-				else if (let == 'G') // goal/end
-				{
-					// use the sphere
-					// need to add a sphere model
-				}
-				else if ( (let >= 'A') && (let <= 'E') ) // if it's between inclusive A and E then it's a Door
-				{
-					addModel(texturedShader, modelList, 0, 1, it+0.5, i-0.5, z);
-				}
-				else if ( (let >= 'a') && (let <= 'e') ) // if it's between inclusive a and e then it's a key
-				{
-					addModel(texturedShader, modelList, 1, 2, it+0.5, i-0.5, z);
-				}
-				else // we don't care
-				{
-					continue;
-				}
+			if (let == 'W')
+			{
+				//if ((x==0)&&(y==0))
+				//{
+				//	addModel(texturedShader, modelList, 2, -1, 0, 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
+				//}
+				//else
+				//{
+				addModel(texturedShader, modelList, 2, 0, 0, 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
+				//}
 			}
+			else if ( (let >= 'A') && (let <= 'E') ) // if it's between inclusive A and E then it's a Door
+			{
+				addModel(texturedShader, modelList, 0, -1, (let-'A'), 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
+			}
+			else if ( (let >= 'a') && (let <= 'e') ) // if it's between inclusive a and e then it's a key
+			{
+				addModel(texturedShader, modelList, 1, -1, (let-'a'), 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
+			}
+			else if (let == 'G')
+			{
+				// TODO!!! USE THE SPHERE AS THE END POINT
+			}
+			else if (let == 'S')
+			{
+				continue; // should have already taken care of this
+			}
+			else
+			{
+				// we don't care
+			}
+		}
 	}
 }
-*/
 
-void addFloor(int shaderProgram, int verts[], int w, int h, float x, float y, float z)
+void addModel(int shaderProgram, int verts[], int mod, int tex, int clr, float w, float h, float d, float x, float y, float z)
 {
-	//float floor_sx = 10.0, floor_sy = 10.0, floor_sz = 0.1, floor_px = 0.0, floor_py = 0.0, floor_pz = -5.0;
+	//determine color
+	char clrname = colors[clr];
+	float colR=1, colG=0, colB=0;
+		// red by default
+	if (clrname == 'g')
+	{
+		colR = 0; colG = 1; colB = 0;
+	}
+	else if (clrname == 'b')
+	{
+		colR = 0; colG = 0; colB = 1;
+	}
+	else if (clrname == 'c')
+	{
+		colR = 0; colG = 1; colB = 1;
+	}
+	else if (clrname == 'm')
+	{
+		colR = 1; colG = 0; colB = 1;
+	}
+
 	GLint uniColor = glGetUniformLocation(shaderProgram, "inColor");
 	glm::vec3 colVec(colR,colG,colB);
 	glUniform3fv(uniColor, 1, glm::value_ptr(colVec));
 
-	GLint uniTexID = glGetUniformLocation(shaderProgram, "texID");
-
-	glm::mat4 model;
-		// Scale
-		model = glm::scale(model, glm::vec3(w, h, 0.1));
-	// Translate
-		model = glm::translate(model, glm::vec3(x, y, z));
-
-	
-	GLint uniModel = glGetUniformLocation(shaderProgram, "model");
-	//Set which texture to use (1 = brick texture ... bound to GL_TEXTURE1)
-		glUniform1i(uniTexID, 1); 
-		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
-
-	//Draw an instance of the model (at the position & orientation specified by the model matrix above)
-		glDrawArrays(GL_TRIANGLES, verts[4], verts[5]); //(Primitive Type, Start Vertex, Num Verticies)
-}
-
-void addModel(int shaderProgram, int verts[], int mod, int tex, float w, float h, float d, float x, float y, float z)
-{
 	GLint uniTexID = glGetUniformLocation(shaderProgram, "texID");
 	glm::mat4 model;
 
@@ -853,92 +666,6 @@ void addModel(int shaderProgram, int verts[], int mod, int tex, float w, float h
 	// verts[4] model 3 start key
     // so mod*2 is start
 		glDrawArrays(GL_TRIANGLES, verts[mod*2], verts[mod*2+1]); //(Primitive Type, Start Vertex, Num Verticies)
-}
-
-void drawGeometry(int shaderProgram, int verts[])
-{
-	float floor_sx = 10.0, floor_sy = 10.0, floor_sz = 0.1, floor_px = 0.0, floor_py = 0.0, floor_pz = -5.0;
-
-	GLint uniColor = glGetUniformLocation(shaderProgram, "inColor");
-	glm::vec3 colVec(colR,colG,colB);
-	glUniform3fv(uniColor, 1, glm::value_ptr(colVec));
-
-	GLint uniTexID = glGetUniformLocation(shaderProgram, "texID");
-
-	// Floor
-		glm::mat4 model;
-		//glm::scale(model,glm::vec3(1.0f,1.0f,1.0f));
-		//model = glm::translate(model,glm::vec3(0.0,0.0,0.0));
-		model = glm::scale(model, glm::vec3(floor_sx, floor_sy, floor_sz)); //scale this model
-		model = glm::translate(model, glm::vec3(floor_px, floor_py, floor_pz));
-		GLint uniModel = glGetUniformLocation(shaderProgram, "model");
-		//Set which texture to use (1 = brick texture ... bound to GL_TEXTURE1)
-		glUniform1i(uniTexID, -1); 
-		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
-
-		//Draw an instance of the model (at the position & orientation specified by the model matrix above)
-		glDrawArrays(GL_TRIANGLES, verts[4], verts[5]); //(Primitive Type, Start Vertex, Num Verticies)
-
-	//************
-	//Draw model #1 the first time
-	//This model is stored in the VBO starting a offest model1_start and with model1_numVerts num of verticies
-	//*************
-  	/*
-	//Rotate model (matrix) based on how much time has past
-	glm::mat4 model;
-	model = glm::rotate(model,timePast * 3.14f/2,glm::vec3(0.0f, 1.0f, 1.0f));
-	model = glm::rotate(model,timePast * 3.14f/4,glm::vec3(1.0f, 0.0f, 0.0f));
-	//model = glm::scale(model,glm::vec3(.2f,.2f,.2f)); //An example of scale
-	model = glm::scale(model,glm::vec3(2.0f,2.0f,2.0f)); //An example of scale
-	GLint uniModel = glGetUniformLocation(shaderProgram, "model");
-	glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model)); //pass model matrix to shader
-
-	//Set which texture to use (-1 = no texture)
-	glUniform1i(uniTexID, -1); 
-
-	//Draw an instance of the model (at the position & orientation specified by the model matrix above)
-	glDrawArrays(GL_TRIANGLES, model1_start, model1_numVerts); //(Primitive Type, Start Vertex, Num Verticies)
-	*/
-	
-	//************
-	//Draw model #1 the second time
-	//This model is stored in the VBO starting a offest model1_start and with model1_numVerts num. of verticies
-	//*************
-
-	//Translate the model (matrix) left and back
-	/*
-	model = glm::mat4(); //Load intentity
-	model = glm::translate(model,glm::vec3(-2,-1,-.4));
-	//model = glm::scale(model,2.f*glm::vec3(1.f,1.f,0.5f)); //scale example
-	glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
-
-	//Set which texture to use (0 = wood texture ... bound to GL_TEXTURE0)
-	glUniform1i(uniTexID, 0);
-	*/
-// TEAPOT
-  //Draw an instance of the model (at the position & orientation specified by the model matrix above)
-	//glDrawArrays(GL_TRIANGLES, model1_start, model1_numVerts); //(Primitive Type, Start Vertex, Num Verticies)
-
-// THE KNOT
-	//************
-	//Draw model #2 once
-	//This model is stored in the VBO starting a offest model2_start and with model2_numVerts num of verticies
-	//*************
-/*
-	//Translate the model (matrix) based on where objx/y/z is
-	// ... these variables are set when the user presses the arrow keys
-	model = glm::mat4();
-	model = glm::scale(model,glm::vec3(.8f,.8f,.8f)); //scale this model
-	model = glm::translate(model,glm::vec3(objx,objy,objz));
-
-	//Set which texture to use (1 = brick texture ... bound to GL_TEXTURE1)
-	glUniform1i(uniTexID, 1); 
-	glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
-
-	//Draw an instance of the model (at the position & orientation specified by the model matrix above)
-	glDrawArrays(GL_TRIANGLES, model2_start, model2_numVerts); //(Primitive Type, Start Vertex, Num Verticies)
-*/
-
 }
 
 // Create a NULL-terminated string by reading the provided file
