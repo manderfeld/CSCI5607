@@ -39,11 +39,13 @@ const char* INSTRUCTIONS =
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+#include <cmath>
 #include <cstdio>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
+#include <map>
 using namespace std;
 
 int screenWidth = 800; 
@@ -66,7 +68,13 @@ float rand01(){
 	return rand()/(float)RAND_MAX;
 }
 
-void makeMap(int texturedShader, int modelList[], char** ret, int w, int h);
+
+float playerRadius = .2;
+float pickupRadius = .22;
+
+void makeMap(vector<string>, map<int, vector< pair<int, char> > > &bigMap, float arr[]);
+void makeLevel(int texturedShader, int modelList[], map<int, vector< pair<int, char> > >bigMap, int w, int h);
+void makeMapOld(int texturedShader, int modelList[], char** ret, int w, int h);
 void parseInput(int texturedShared, int modelList[], vector<string> input, int w, int h, float arr[]);
 void addFloor(int shaderProgram, int verts[], int w, int h, float x, float y, float z);
 void addModel(int shaderProgram, int verts[], int mod, int tex, float x, float y, float z);
@@ -249,12 +257,6 @@ int main(int argc, char *argv[])
 /////////////////////////////////////////////////
 // VARIABLES
 int map_w, map_h;
-
-bool up = false, down = false, left = false, right = false;
-float pos_res = 0.05, // resolution (amount we wish to modify things by)
-	th_res = pos_res/2.0;
-
-float c_pos_x, c_pos_y, c_pos_z, c_dir_x = 0.0, c_dir_y = 0.0, c_dir_z = 0.0, c_theta = M_PI;
 /////////////////////////////////////////////////
 
 
@@ -291,43 +293,59 @@ float c_pos_x, c_pos_y, c_pos_z, c_dir_x = 0.0, c_dir_y = 0.0, c_dir_z = 0.0, c_
 			lines.push_back(line);
 		}
 
-		//char map[map_w][map_h];
-// Go through the vector<string> and make a 2D array that representst the map
-		//char mapGrid[map_w][map_h];
-		//char** mapGrid = new char[map_w][map_h];
-		
-		char** mapGrid;
-		mapGrid = new char*[map_w];
-		for (int x = 0; x < map_w; x++)
-		{
-			mapGrid[x] = new char[map_h];
-		}
+// Really convoluted way of storing this but I kept getting seg faults with 2d dynamic arrays
+		map<int, vector< pair<int, char> > > bigMap;
+		float arr[2]; // array for camera position
+		makeMap(lines, bigMap, arr);
 
 		// then go through array
-		for (int i = 0; i < map_w; i++)
+		for (map<int, vector< pair<int, char> > >::iterator it = bigMap.begin(); it != bigMap.end(); it++)
 		{
-			string row = lines[i];
+			int x = it->first;
+			vector< pair<int, char> > val = it->second;
+			for (vector< pair<int, char> >::iterator itt = val.begin(); itt != val.end(); itt++)
+			{
+				int y = itt->first;
+				char let = itt->second;
+				cout << "|" << let;
+				//cout << "At (x,y) there is char ---  " << x << " , " << y << ": " << let << endl;
+			}
+			cout << endl;
+		}
+		/*for (int i = 0; i < map_w; i++)
+		{
+			vector< pair<int, char> > row;
+			//string row = lines[i];
 			for (int j = 0; j < map_h; j++)
 			{
-				char let = row[j];
+				pair<int,char> numchar = row[j];
+				char let = numchar.second;
 				if (let == 'S')
 				{
 					c_pos_x = i+0.5;
 					c_pos_y = j-0.5;
 				}
-				mapGrid[i][j] = let;
+				//mapGrid[i][j] = let;
 			}
-		}
+		}*/
 
 	cout << "* END FILE INPUT" << endl;
+/////////////////////////////////////////////////
+
+/////////////////////////////////////////////////
+bool up = false, down = false, left = false, right = false;
+float pos_res = 0.05, // resolution (amount we wish to modify things by)
+	th_res = pos_res/2.0;
+
+float c_pos_x = arr[0], c_pos_y = arr[1], c_pos_z, c_dir_x, c_dir_y, c_dir_z, c_theta = M_PI;
+float c_pos_xi, c_pos_yi;
 /////////////////////////////////////////////////
 
 	//Event Loop (Loop forever processing each event as fast as possible)
 	SDL_Event windowEvent;
 
 	bool quit = false;
-	int initCam = true;
-	//float arr[2]; // array for camera position
+	//int initCam = true;
 	while (!quit)
 	{
 		while (SDL_PollEvent(&windowEvent))
@@ -394,13 +412,17 @@ float c_pos_x, c_pos_y, c_pos_z, c_dir_x = 0.0, c_dir_y = 0.0, c_dir_z = 0.0, c_
 		// if/elses for whether the key is going from  pressed->released  or  not pressed->pressed
 		if (up)
 		{
-			c_pos_x += pos_res*cosf(c_theta);
-			c_pos_y += pos_res*sinf(c_theta);
+			c_pos_xi = c_pos_x;
+			c_pos_yi = c_pos_y;
+			c_pos_x = c_pos_x + pos_res*cosf(c_theta);
+			c_pos_y = c_pos_y + pos_res*sinf(c_theta);
 		}
 		if (down)
 		{
-			c_pos_x -= pos_res*cosf(c_theta);
-			c_pos_y -= pos_res*sinf(c_theta);
+			c_pos_xi = c_pos_x;
+			c_pos_yi = c_pos_y;
+			c_pos_x = c_pos_x - pos_res*cosf(c_theta);
+			c_pos_y = c_pos_y - pos_res*sinf(c_theta);
 		}
 		if (left)
 		{
@@ -416,7 +438,31 @@ float c_pos_x, c_pos_y, c_pos_z, c_dir_x = 0.0, c_dir_y = 0.0, c_dir_z = 0.0, c_
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram(texturedShader);
+		//bool ret = isWalkable(c_pos_x, c_pos_y, c_pos_xi, c_pos_yi);
 
+		bool ret = true;;
+			//int dx = floor(c_pos_x-1 + playerRadius);
+			//int dy = floor(c_pos_y-1 + playerRadius);
+			/*if ( (dx >= 0) && (dx <= map_w) && (dy >= 0) && (dy <= map_h))
+			{
+				//if (mapGrid[dx][dy] == 'W')
+					//ret = false;
+			}
+			else
+			{
+				ret = false;
+			}*/
+			/*if (mapGrid[dx][dy] == 'W')
+			{
+				ret = false;
+			}*/
+
+
+		if (!ret) // if not walkable, do not allow movement
+		{
+			c_pos_x = c_pos_xi;
+			c_pos_y = c_pos_yi;
+		}
 		timePast = SDL_GetTicks()/1000.f; 
 		// Have camera look at stuff
 			glm::mat4 view = glm::lookAt(
@@ -440,23 +486,19 @@ float c_pos_x, c_pos_y, c_pos_z, c_dir_x = 0.0, c_dir_y = 0.0, c_dir_z = 0.0, c_
 
 
 		glBindVertexArray(vao);
-
-		makeMap(texturedShader, modelList, mapGrid, map_w, map_h);
+		//makeMap(texturedShader, modelList, mapGrid, map_w, map_h);
+		makeLevel(texturedShader, modelList, bigMap, map_w, map_h);
 		//parseInput(texturedShader, modelList, lines, map_w, map_h, arr);
-		/*if (initCam)
-		{
-			c_pos_x = arr[0];
-			c_pos_y = arr[1];
-			c_pos_z = 0.0;
-			c_dir_x = 0.0;
-			c_dir_y = 0.0;
-			c_dir_z = 1.0;
-			c_theta = M_PI;
-			initCam = false;
-		}*/
 
 		SDL_GL_SwapWindow(window); //Double buffering
+
 	}
+
+	/*for (int x = 0; x < map_w; x++)
+	{
+		free(mapGrid[x]);
+	}
+	free(mapGrid);*/
 	
 	//Clean Up
 		glDeleteProgram(texturedShader);
@@ -464,11 +506,93 @@ float c_pos_x, c_pos_y, c_pos_z, c_dir_x = 0.0, c_dir_y = 0.0, c_dir_z = 0.0, c_
     	glDeleteVertexArrays(1, &vao);
 		SDL_GL_DeleteContext(context);
 		SDL_Quit();
+
 	return 0;
 }
 
+void makeMap(vector<string> input, map<int, vector< pair<int, char> > > &bigMap, float arr[])
+{
+	// make a big unordered map...
+	/*
+	{0, < <0, 'W'> , <1, 'W'> , <2, '0'> , <3, '0'> >}
+	{1, <0, 1, 2, 3>} etc...
+	*/
+	for (int in = 0; in < input.size(); in++) // go through each line that was parsed
+	{
+		string row = input[in];
+		// each line is the row index, will be the key value for the map
+		for (int st = 0; st < row.length(); st++) // look at each letter in the line
+		{
+			char let = row[st]; // each letter is a pair with its y (st) coordinate
+			if (let == 'S')
+			{
+				arr[0] = in;
+				arr[1] = st;
+			}			
+			// its x coordinate is the key of the map. the value is the pair <#coord#, 'char'>
+			pair<int, char> val = make_pair(st, let);
+			//cout << "Adding pair " << st << " , " << let << " to KEY: " << in << endl;
+			bigMap[in].push_back(val);
+			//bigMap.insert(make_pair(in, val));
+		}
+	}
+}
+
+void makeLevel(int texturedShader, int modelList[], map<int, vector< pair<int, char> > >bigMap, int w, int h)
+{
+	if (w%2 == 0)
+	{
+		w += 1.0;
+	}
+	if (h%2 == 0)
+	{
+		h += 1.0;
+	}
+	addFloor(texturedShader, modelList, w, h, w/2+0.5, h/2-0.5, -0.5);
+	float z = 0.0;
+
+	for (map<int, vector< pair<int, char> > >::iterator it = bigMap.begin(); it != bigMap.end(); it++)
+	{
+		int x = it->first;
+		vector< pair<int, char> > val = it->second;
+		for (vector< pair<int, char> >::iterator itt = val.begin(); itt != val.end(); itt++)
+		{
+			int y = itt->first;
+			char let = itt->second;
+			// Wall  is W
+			// Door  is A-E
+			// Key   is a-e
+			// 0     is open (we don't do anything)
+			if (let == 'W')
+			{
+				addModel(texturedShader, modelList, 2, 0, x+0.5, y-0.5, z);
+			}
+			else if ( (let >= 'A') && (let <= 'E') ) // if it's between inclusive A and E then it's a Door
+			{
+				addModel(texturedShader, modelList, 0, -1, x+0.5, y-0.5, z);
+			}
+			else if ( (let >= 'a') && (let <= 'e') ) // if it's between inclusive a and e then it's a key
+			{
+				addModel(texturedShader, modelList, 1, -1, x+0.5, y-0.5, z);
+			}
+			else if (let == 'G')
+			{
+				// TODO!!! USE THE SPHERE AS THE END POINT
+			}
+			else if (let == 'S')
+			{
+				continue; // should have already taken care of this
+			}
+			else
+			{
+				// we don't care
+			}
+		}
+	}
+}
+
 // makes the map given a 2D array that represents the level
-void makeMap(int texturedShader, int modelList[], char** ret, int w, int h)
+void makeMapOld(int texturedShader, int modelList[], char** ret, int w, int h)
 {
 	if (w%2 == 0)
 	{
