@@ -43,7 +43,10 @@ const char* INSTRUCTIONS =
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
 using namespace std;
+
+typedef pair<int, int> xy;
 
 int screenWidth = 800; 
 int screenHeight = 600;  
@@ -57,7 +60,7 @@ float timePast = 0;
 	float floor_sx = 10.0, floor_sy = 10.0, floor_sz = 0.2,
 		  floor_px = 0.0, floor_py = 0.0, floor_pz = -floor_sy+1.0;
 
-float objx=0, objy=0, objz=0;
+//float objx=0, objy=0, objz=0;
 float colR=1, colG=1, colB=1;
 
 bool DEBUG_ON = true;
@@ -70,33 +73,78 @@ float rand01(){
 	return rand()/(float)RAND_MAX;
 }
 
-void drawGeometry(int shaderProgram, int model1_start, int model1_numVerts, int model2_start, int model2_numVerts, int verts[]);
+void drawGeometry(int shaderProgram, int verts[]);
 
-int main(int argc, char *argv[]){
-	SDL_Init(SDL_INIT_VIDEO);  //Initialize Graphics (for OpenGL)
+int main(int argc, char *argv[])
+{
 
-	//Ask SDL to get a recent version of OpenGL (3.2 or greater)
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-
-	//Create a window (offsetx, offsety, width, height, flags)
-	SDL_Window* window = SDL_CreateWindow("My OpenGL Program", 100, 100, screenWidth, screenHeight, SDL_WINDOW_OPENGL);
-
-	//Create a context to draw in
-	SDL_GLContext context = SDL_GL_CreateContext(window);
+// TODO: could probably work in a class structure of some sort to store all of these variables in a much better way
+// Setting up variables
+// Map
+	int map_w, map_h;
+	/*
+	int s_x = 0; // player start x
+	int s_y = 0; // player start y
 	
+	// keeping track of objects and where they are
+	vector<xy> walls;
+	xy doors[5]; // set number of doors
+		// initialize to -1, 
+	xy keys[5]; // set number of keys
+	*/
+
+// Open the level file
+	// start by putting each line in a vector of strings (each line is in its own row)
+	// then go through each row and assign coordinates based on row and col where col is placement of character in line
+
+	// TODO: find a more efficient way to do this
+
+	vector<string> lines;
+	cout << "* BEGIN FILE INPUT" << endl;
+	cout << "\tReading file: " << argv[1] << endl;
+	ifstream input(argv[1]);
+
+	// Check for errors opening the file
+		if(input.fail())
+		{
+			cout << "\tCannot open file: '" << argv[1] << "'" << endl;
+			return 0;
+		}
+	// First off, get width and height
+		input >> map_w >> map_h;
+		cout << "\tMaking map (w,h):  (" << map_w << ", " << map_h << " )" << endl;
+	// Loop through reading each line and put it in the lines vector
+		string line;
+		while(input >> line)
+		{
+			lines.push_back(line);
+		}
+	cout << "* END FILE INPUT" << endl;
+
+
+
+	SDL_Init(SDL_INIT_VIDEO);  //Initialize Graphics (for OpenGL)
+	//Ask SDL to get a recent version of OpenGL (3.2 or greater)
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+	//Create a window (offsetx, offsety, width, height, flags)
+		SDL_Window* window = SDL_CreateWindow("My OpenGL Program", 100, 100, screenWidth, screenHeight, SDL_WINDOW_OPENGL);
+	//Create a context to draw in
+		SDL_GLContext context = SDL_GL_CreateContext(window);
 	//Load OpenGL extentions with GLAD
-	if (gladLoadGLLoader(SDL_GL_GetProcAddress)){
-		printf("\nOpenGL loaded\n");
-		printf("Vendor:   %s\n", glGetString(GL_VENDOR));
-		printf("Renderer: %s\n", glGetString(GL_RENDERER));
-		printf("Version:  %s\n\n", glGetString(GL_VERSION));
-	}
-	else {
-		printf("ERROR: Failed to initialize OpenGL context.\n");
-		return -1;
-	}
+		if (gladLoadGLLoader(SDL_GL_GetProcAddress))
+		{
+			printf("\nOpenGL loaded\n");
+			printf("Vendor:   %s\n", glGetString(GL_VENDOR));
+			printf("Renderer: %s\n", glGetString(GL_RENDERER));
+			printf("Version:  %s\n\n", glGetString(GL_VERSION));
+		}
+		else
+		{
+			printf("ERROR: Failed to initialize OpenGL context.\n");
+			return -1;
+		}
 	
 // Load model files
 	//Load Model 1
@@ -383,7 +431,7 @@ int main(int argc, char *argv[]){
 		glUniform1i(glGetUniformLocation(texturedShader, "tex1"), 1);
 
 		glBindVertexArray(vao);
-		drawGeometry(texturedShader, startVertTeapot, numVertsTeapot, startVertKnot, numVertsKnot, modelList);
+		drawGeometry(texturedShader, modelList);
 
 		SDL_GL_SwapWindow(window); //Double buffering
 	}
@@ -398,7 +446,7 @@ int main(int argc, char *argv[]){
 	return 0;
 }
 
-void drawGeometry(int shaderProgram, int model1_start, int model1_numVerts, int model2_start, int model2_numVerts, int verts[])
+void drawGeometry(int shaderProgram, int verts[])
 {
 	// verts[0] model 1 start
 	// verts[2] model 2 start
@@ -465,12 +513,11 @@ void drawGeometry(int shaderProgram, int model1_start, int model1_numVerts, int 
 	//glDrawArrays(GL_TRIANGLES, model1_start, model1_numVerts); //(Primitive Type, Start Vertex, Num Verticies)
 
 // THE KNOT
-/*
 	//************
 	//Draw model #2 once
 	//This model is stored in the VBO starting a offest model2_start and with model2_numVerts num of verticies
 	//*************
-
+/*
 	//Translate the model (matrix) based on where objx/y/z is
 	// ... these variables are set when the user presses the arrow keys
 	model = glm::mat4();
