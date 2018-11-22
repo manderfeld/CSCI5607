@@ -66,10 +66,38 @@ float rand01(){
 	return rand()/(float)RAND_MAX;
 }
 
-void parseInput(int texturedShared, int modelList[], vector<string> input, int w, int h);
+void parseInput(int texturedShared, int modelList[], vector<string> input, int w, int h, float arr[]);
 void addFloor(int shaderProgram, int verts[], int w, int h, float x, float y, float z);
 void addModel(int shaderProgram, int verts[], int mod, int tex, float x, float y, float z);
 void drawGeometry(int shaderProgram, int verts[]);
+
+GLuint texture(const char* input)
+{
+		SDL_Surface* surface = SDL_LoadBMP(input);
+		if (surface==NULL)
+		{ //If it failed, print the error
+	        printf("Error: \"%s\"\n",SDL_GetError());
+	    }
+	    GLuint tex0;
+	    glGenTextures(1, &tex0);
+	    
+	    glActiveTexture(GL_TEXTURE0);
+	    glBindTexture(GL_TEXTURE_2D, tex0);
+	    
+	    //What to do outside 0-1 range
+	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	    
+	    //Load the texture into memory
+	    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w,surface->h, 0, GL_BGR,GL_UNSIGNED_BYTE,surface->pixels);
+	    glGenerateMipmap(GL_TEXTURE_2D); //Mip maps the texture
+	    
+	    SDL_FreeSurface(surface);
+
+	    return tex0;
+}
 
 int main(int argc, char *argv[])
 {
@@ -164,55 +192,26 @@ int main(int argc, char *argv[])
 		modelList[4] = startVertCube;
 		modelList[5] = numVertsCube;
 
-	//// Allocate Texture 0 (Wood) ///////
-	SDL_Surface* surface = SDL_LoadBMP("wood.bmp");
-	if (surface==NULL){ //If it failed, print the error
-        printf("Error: \"%s\"\n",SDL_GetError()); return 1;
-    }
-    GLuint tex0;
-    glGenTextures(1, &tex0);
-    
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, tex0);
-    
-    //What to do outside 0-1 range
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    
-    //Load the texture into memory
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w,surface->h, 0, GL_BGR,GL_UNSIGNED_BYTE,surface->pixels);
-    glGenerateMipmap(GL_TEXTURE_2D); //Mip maps the texture
-    
-    SDL_FreeSurface(surface);
+	//// Allocate Textures ///////
+		string file = "stars.bmp";
+		GLuint tex0 = texture(file.c_str());
+		file = "wood.bmp";
+		GLuint tex1 = texture(file.c_str());
+
+		file = "woodr.bmp";
+		GLuint tex2 = texture(file.c_str());
+		file = "woodg.bmp";
+		GLuint tex3 = texture(file.c_str());
+		file = "woodb.bmp";
+		GLuint tex4 = texture(file.c_str());
+
+		file = "brickr.bmp";
+		GLuint tex5 = texture(file.c_str());
+		file = "brickg.bmp";
+		GLuint tex6 = texture(file.c_str());
+		file = "brickb.bmp";
+		GLuint tex7 = texture(file.c_str());
     //// End Allocate Texture ///////
-
-
-	//// Allocate Texture 1 (Brick) ///////
-	SDL_Surface* surface1 = SDL_LoadBMP("brick.bmp");
-	if (surface==NULL){ //If it failed, print the error
-        printf("Error: \"%s\"\n",SDL_GetError()); return 1;
-    }
-    GLuint tex1;
-    glGenTextures(1, &tex1);
-    
-    //Load the texture into memory
-    glActiveTexture(GL_TEXTURE1);
-    
-    glBindTexture(GL_TEXTURE_2D, tex1);
-    //What to do outside 0-1 range
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    //How to filter
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface1->w,surface1->h, 0, GL_BGR,GL_UNSIGNED_BYTE,surface1->pixels);
-    glGenerateMipmap(GL_TEXTURE_2D); //Mip maps the texture
-    
-    SDL_FreeSurface(surface1);
-	//// End Allocate Texture ///////
 	
 	//Build a Vertex Array Object (VAO) to store mapping of shader attributse to VBO
 	GLuint vao;
@@ -294,24 +293,18 @@ int main(int argc, char *argv[])
 
 
 	// VARIABLES
-		bool up = false;
-		bool down = false;
-		bool left = false;
-		bool right = false;
-		float pos_res = 0.05; // resolution (amount we wish to modify things by)
-		float th_res = pos_res/2.0;
-		float c_pos_x = 3.0;
-		float c_pos_y = 0.0;
-		float c_pos_z = 0.0;
-		float c_dir_x = 0.0;
-		float c_dir_y = 0.0;
-		float c_dir_z = 1.0;
-		float c_theta = M_PI; // in radians from 0 to 2*3.14 or M_PI)
+		bool up = false, down = false, left = false, right = false;
+		float pos_res = 0.05, // resolution (amount we wish to modify things by)
+			th_res = pos_res/2.0;
+
+		float c_pos_x, c_pos_y, c_pos_z, c_dir_x, c_dir_y, c_dir_z, c_theta;
 
 	//Event Loop (Loop forever processing each event as fast as possible)
 	SDL_Event windowEvent;
 
 	bool quit = false;
+	int initCam = true;
+	float arr[2]; // array for camera position
 	while (!quit)
 	{
 		while (SDL_PollEvent(&windowEvent))
@@ -422,12 +415,45 @@ int main(int argc, char *argv[])
 		glBindTexture(GL_TEXTURE_2D, tex1);
 		glUniform1i(glGetUniformLocation(texturedShader, "tex1"), 1);
 
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, tex2);
+		glUniform1i(glGetUniformLocation(texturedShader, "tex2"), 2);
+
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, tex3);
+		glUniform1i(glGetUniformLocation(texturedShader, "tex3"), 3);
+
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, tex4);
+		glUniform1i(glGetUniformLocation(texturedShader, "tex4"), 4);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, tex5);
+		glUniform1i(glGetUniformLocation(texturedShader, "tex5"), 5);
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, tex6);
+		glUniform1i(glGetUniformLocation(texturedShader, "tex6"), 6);
+
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, tex7);
+		glUniform1i(glGetUniformLocation(texturedShader, "tex7"), 7);
+
+
 		glBindVertexArray(vao);
 
-		parseInput(texturedShader, modelList, lines, map_w, map_h);
-
-		//addModel(texturedShader, modelList, 0, 0.0, 0.0, 0.0);
-		//drawGeometry(texturedShader, modelList);
+		parseInput(texturedShader, modelList, lines, map_w, map_h, arr);
+		if (initCam)
+		{
+			c_pos_x = arr[0];
+			c_pos_y = arr[1];
+			c_pos_z = 0.0;
+			c_dir_x = 0.0;
+			c_dir_y = 0.0;
+			c_dir_z = 1.0;
+			c_theta = M_PI;
+			initCam = false;
+		}
 
 		SDL_GL_SwapWindow(window); //Double buffering
 	}
@@ -441,15 +467,28 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-void parseInput(int texturedShader, int modelList[], vector<string>input, int w, int h)
+void parseInput(int texturedShader, int modelList[], vector<string>input, int w, int h, float arr[])
 {
+	// Set the floor
 	// make (0,0) the upper left corner by offsetting the floor
-											// -0.5 because cubes are placed based on center
-	addFloor(texturedShader, modelList, w, h, w/2+0.5, h/2-0.5, -0.5);
+		if (w%2 == 0) // width is odd
+		{
+			w+=1.0;
+		}
+		if (h%2 == 0)
+		{
+			h+=1.0;
+		}
+		addFloor(texturedShader, modelList, w, h, w/2+0.5, h/2-0.5, -0.5);
 
+	// value of z used for all models (since they just need to be above the floor)
+	float z = 0.0;
+
+	// Adding a model
 	//addModel(texturedShader, modelList, 2, 0, 0.0, 0.0, 0.0);
 									 // ^ model, then texture. 0=teapot, 1=knot, 2=cube;  -1=nothing, 0=wood, 1=brick
 
+	// Go through the rest of the file
 	// Iterate through each line
 	for (int it = 0; it < input.size(); it++)
 	{
@@ -470,16 +509,26 @@ void parseInput(int texturedShader, int modelList[], vector<string>input, int w,
 				// 0     is open (we don't do anything)
 				if (let == 'W') // Wall
 				{
-					// add wall at position x+.5, y+.5, z
-					addModel(texturedShader, modelList, 2, 0, it+0.5, i-0.5, 0.0);
+					// add wall at position x+.5, y+.5
+					addModel(texturedShader, modelList, 2, 0, it+0.5, i-0.5, z);
+				}
+				else if (let == 'S') // start
+				{
+					arr[0] = it+0.5;
+					arr[1] = i-0.5;
+				}
+				else if (let == 'G') // goal/end
+				{
+					// use the sphere
+					// need to add a sphere model
 				}
 				else if ( (let >= 'A') && (let <= 'E') ) // if it's between inclusive A and E then it's a Door
 				{
-
+					addModel(texturedShader, modelList, 0, 1, it+0.5, i-0.5, z);
 				}
 				else if ( (let >= 'a') && (let <= 'e') ) // if it's between inclusive a and e then it's a key
 				{
-
+					addModel(texturedShader, modelList, 1, -1, it+0.5, i-0.5, z);
 				}
 				else // we don't care
 				{
@@ -506,7 +555,7 @@ void addFloor(int shaderProgram, int verts[], int w, int h, float x, float y, fl
 	
 	GLint uniModel = glGetUniformLocation(shaderProgram, "model");
 	//Set which texture to use (1 = brick texture ... bound to GL_TEXTURE1)
-		glUniform1i(uniTexID, 0); 
+		glUniform1i(uniTexID, 1); 
 		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
 
 	//Draw an instance of the model (at the position & orientation specified by the model matrix above)
