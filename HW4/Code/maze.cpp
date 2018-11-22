@@ -46,19 +46,12 @@ const char* INSTRUCTIONS =
 #include <vector>
 using namespace std;
 
-typedef pair<int, int> xy;
-
 int screenWidth = 800; 
 int screenHeight = 600;  
 float timePast = 0;
 
 //SJG: Store the object coordinates
 //You should have a representation for the state of each object
-
-// Floor
-	// Size
-	float floor_sx = 10.0, floor_sy = 10.0, floor_sz = 0.1,
-		  floor_px = 0.0, floor_py = 0.0, floor_pz = -5.0;
 
 //float objx=0, objy=0, objz=0;
 float colR=1, colG=1, colB=1;
@@ -73,7 +66,9 @@ float rand01(){
 	return rand()/(float)RAND_MAX;
 }
 
-void addModel(int shaderProgram, int verts[], int num, float x, float y, float z);
+void parseInput(int texturedShared, int modelList[], vector<string> input, int w, int h);
+void addFloor(int shaderProgram, int verts[], int w, int h, float x, float y, float z);
+void addModel(int shaderProgram, int verts[], int mod, int tex, float x, float y, float z);
 void drawGeometry(int shaderProgram, int verts[]);
 
 int main(int argc, char *argv[])
@@ -265,66 +260,33 @@ int main(int argc, char *argv[])
 // TODO: could probably work in a class structure of some sort to store all of these variables in a much better way
 // Setting up variables
 // Map
-	int map_w, map_h;
 // Open the level file
-	// start by putting each line in a vector of strings (each line is in its own row)
-	// then go through each row and assign coordinates based on row and col where col is placement of character in line
+// start by putting each line in a vector of strings (each line is in its own row)
+// then go through each row and assign coordinates based on row and col where col is placement of character in line
 
-	// TODO: find a more efficient way to do this
+// TODO: find a more efficient way to do this
+	int map_w, map_h;
+	vector<string> lines;
 
-	//vector<string> lines;
 	cout << "* BEGIN FILE INPUT" << endl;
 	cout << "\tReading file: " << argv[1] << endl;
 	ifstream input(argv[1]);
 
-	// Check for errors opening the file
+// Check for errors opening the file
 		if(input.fail())
 		{
 			cout << "\tCannot open file: '" << argv[1] << "'" << endl;
 			return 0;
 		}
-	// First off, get width and height
+// First off, get width and height
 		input >> map_w >> map_h;
 		cout << "\tMaking map (w,h):  (" << map_w << ", " << map_h << " )" << endl;
 
-	// Loop through reading each line and put it in the lines vector
+// Loop through reading each line and put it in the lines vector
 		string line;
 		while(input >> line)
 		{
-			// Within each line, go through each char
-
-			for (int i = 0; i < map_w; i++)
-			{
-				// If a line is longer than width (shouldn't be possible, would give an out of bounds error)
-				// disregard it
-				if (line.length() > map_w)
-				{
-					continue;
-				}
-				char let = line[i];
-				// Wall  is W
-				// Door  is A-E
-				// Key   is a-e
-				// 0     is open (we don't do anything)
-				if (let == 'W') // Wall
-				{
-					// add wall at position x+.5, y+.5, z
-				}
-				else if ( (let >= 'A') && (let <= 'E') ) // if it's between inclusive A and E then it's a Door
-				{
-
-				}
-				else if ( (let >= 'a') && (let <= 'e') ) // if it's between inclusive a and e then it's a key
-				{
-
-				}
-				else // we don't care
-				{
-					continue;
-				}
-			}
-
-			//lines.push_back(line);
+			lines.push_back(line);
 		}
 	cout << "* END FILE INPUT" << endl;
 /////////////////////////////////////////////////
@@ -337,7 +299,7 @@ int main(int argc, char *argv[])
 		bool left = false;
 		bool right = false;
 		float pos_res = 0.05; // resolution (amount we wish to modify things by)
-		float th_res = pos_res/5.0;
+		float th_res = pos_res/2.0;
 		float c_pos_x = 3.0;
 		float c_pos_y = 0.0;
 		float c_pos_z = 0.0;
@@ -348,6 +310,7 @@ int main(int argc, char *argv[])
 
 	//Event Loop (Loop forever processing each event as fast as possible)
 	SDL_Event windowEvent;
+
 	bool quit = false;
 	while (!quit)
 	{
@@ -359,7 +322,8 @@ int main(int argc, char *argv[])
 			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_ESCAPE) 
 			quit = true; //Exit event loop
 			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_f)
-			{ //If "f" is pressed
+			{
+				//If "f" is pressed
 				fullscreen = !fullscreen;
 				SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN : 0); //Toggle fullscreen 
 			}
@@ -411,7 +375,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		// if else for up/down
+		// if/elses for whether the key is going from  pressed->released  or  not pressed->pressed
 		if (up)
 		{
 			c_pos_x += pos_res*cosf(c_theta);
@@ -432,23 +396,24 @@ int main(int argc, char *argv[])
 		}
 
 		// Clear the screen to default color
-		glClearColor(.2f, 0.4f, 0.8f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glClearColor(.2f, 0.4f, 0.8f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram(texturedShader);
 
 		timePast = SDL_GetTicks()/1000.f; 
 		// Have camera look at stuff
-		glm::mat4 view = glm::lookAt(
-		glm::vec3(c_pos_x, c_pos_y, c_pos_z),  //Cam Position
-		glm::vec3(c_pos_x + cosf(c_theta), c_pos_y + sinf(c_theta), c_pos_z),
-		glm::vec3(0.0f, 0.0f, 1.0f)); //Up
-		glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
+			glm::mat4 view = glm::lookAt(
+			glm::vec3(c_pos_x, c_pos_y, c_pos_z),  //Cam Position
+			glm::vec3(c_pos_x + cosf(c_theta), c_pos_y + sinf(c_theta), c_pos_z),
+			glm::vec3(0.0f, 0.0f, 1.0f)); //Up
+			glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
 
 	// may have to change the value of far if the maze is huge
 		glm::mat4 proj = glm::perspective(3.14f/4, screenWidth / (float) screenHeight, 0.01f, 100.0f); //FOV, aspect, near, far
 		glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(proj));
 
+	// textures
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, tex0);
 		glUniform1i(glGetUniformLocation(texturedShader, "tex0"), 0);
@@ -459,8 +424,10 @@ int main(int argc, char *argv[])
 
 		glBindVertexArray(vao);
 
-		addModel(texturedShader, modelList, 0, 0.0, 0.0, 0.0);
-		drawGeometry(texturedShader, modelList);
+		parseInput(texturedShader, modelList, lines, map_w, map_h);
+
+		//addModel(texturedShader, modelList, 0, 0.0, 0.0, 0.0);
+		//drawGeometry(texturedShader, modelList);
 
 		SDL_GL_SwapWindow(window); //Double buffering
 	}
@@ -474,8 +441,57 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-void addModel(int shaderProgram, int verts[], int num, float x, float y, float z)
+void parseInput(int texturedShader, int modelList[], vector<string>input, int w, int h)
 {
+	// make (0,0) the upper left corner by offsetting the floor
+											// -0.5 because cubes are placed based on center
+	addFloor(texturedShader, modelList, w, h, w/2+0.5, h/2-0.5, -0.5);
+
+	//addModel(texturedShader, modelList, 2, 0, 0.0, 0.0, 0.0);
+									 // ^ model, then texture. 0=teapot, 1=knot, 2=cube;  -1=nothing, 0=wood, 1=brick
+
+	// Iterate through each line
+	for (int it = 0; it < input.size(); it++)
+	{
+		string row = input[it];
+		// Iterate through each character
+		for (int i = 0; i < w; i++)
+			{
+				// If a line is longer than width (shouldn't be possible, would give an out of bounds error)
+				// disregard it
+				if (row.length() > w)
+				{
+					continue;
+				}
+				char let = row[i];
+				// Wall  is W
+				// Door  is A-E
+				// Key   is a-e
+				// 0     is open (we don't do anything)
+				if (let == 'W') // Wall
+				{
+					// add wall at position x+.5, y+.5, z
+					addModel(texturedShader, modelList, 2, 0, it+0.5, i-0.5, 0.0);
+				}
+				else if ( (let >= 'A') && (let <= 'E') ) // if it's between inclusive A and E then it's a Door
+				{
+
+				}
+				else if ( (let >= 'a') && (let <= 'e') ) // if it's between inclusive a and e then it's a key
+				{
+
+				}
+				else // we don't care
+				{
+					continue;
+				}
+			}
+	}
+}
+
+void addFloor(int shaderProgram, int verts[], int w, int h, float x, float y, float z)
+{
+	//float floor_sx = 10.0, floor_sy = 10.0, floor_sz = 0.1, floor_px = 0.0, floor_py = 0.0, floor_pz = -5.0;
 	GLint uniColor = glGetUniformLocation(shaderProgram, "inColor");
 	glm::vec3 colVec(colR,colG,colB);
 	glUniform3fv(uniColor, 1, glm::value_ptr(colVec));
@@ -483,24 +499,44 @@ void addModel(int shaderProgram, int verts[], int num, float x, float y, float z
 	GLint uniTexID = glGetUniformLocation(shaderProgram, "texID");
 
 	glm::mat4 model;
-	//glm::scale(model,glm::vec3(1.0f,1.0f,1.0f));
-	//model = glm::translate(model,glm::vec3(0.0,0.0,0.0));
-	model = glm::scale(model, glm::vec3(1.0, 1.0, 1.0)); //scale this model
-	model = glm::translate(model, glm::vec3(x, y, z));
+	// Translate
+		model = glm::translate(model, glm::vec3(x, y, z));
+	// Scale
+		model = glm::scale(model, glm::vec3(w, h, 0.1));
+	
 	GLint uniModel = glGetUniformLocation(shaderProgram, "model");
 	//Set which texture to use (1 = brick texture ... bound to GL_TEXTURE1)
-	glUniform1i(uniTexID, 0); 
-	glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
+		glUniform1i(uniTexID, 0); 
+		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
 
 	//Draw an instance of the model (at the position & orientation specified by the model matrix above)
-	glDrawArrays(GL_TRIANGLES, verts[4], verts[5]); //(Primitive Type, Start Vertex, Num Verticies)
+		glDrawArrays(GL_TRIANGLES, verts[4], verts[5]); //(Primitive Type, Start Vertex, Num Verticies)
+}
+
+void addModel(int shaderProgram, int verts[], int mod, int tex, float x, float y, float z)
+{
+	GLint uniTexID = glGetUniformLocation(shaderProgram, "texID");
+	glm::mat4 model;
+	// Translate
+		model = glm::translate(model, glm::vec3(x, y, z));
+	// Scale
+		model = glm::scale(model, glm::vec3(1.0, 1.0, 1.0));
+	GLint uniModel = glGetUniformLocation(shaderProgram, "model");
+	//Set which texture to use (1 = brick texture ... bound to GL_TEXTURE1)
+		glUniform1i(uniTexID, tex); 
+		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
+	//Draw an instance of the model (at the position & orientation specified by the model matrix above)
+
+	// verts[0] model 1 start teapot
+	// verts[2] model 2 start knot
+	// verts[4] model 3 start key
+    // so mod*2 is start
+		glDrawArrays(GL_TRIANGLES, verts[mod*2], verts[mod*2+1]); //(Primitive Type, Start Vertex, Num Verticies)
 }
 
 void drawGeometry(int shaderProgram, int verts[])
 {
-	// verts[0] model 1 start
-	// verts[2] model 2 start
-	// verts[4] model 3 start
+	float floor_sx = 10.0, floor_sy = 10.0, floor_sz = 0.1, floor_px = 0.0, floor_py = 0.0, floor_pz = -5.0;
 
 	GLint uniColor = glGetUniformLocation(shaderProgram, "inColor");
 	glm::vec3 colVec(colR,colG,colB);
