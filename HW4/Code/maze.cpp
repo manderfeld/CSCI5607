@@ -66,6 +66,7 @@ float rand01(){
 	return rand()/(float)RAND_MAX;
 }
 
+void makeMap(int texturedShader, int modelList[], char** ret, int w, int h);
 void parseInput(int texturedShared, int modelList[], vector<string> input, int w, int h, float arr[]);
 void addFloor(int shaderProgram, int verts[], int w, int h, float x, float y, float z);
 void addModel(int shaderProgram, int verts[], int mod, int tex, float x, float y, float z);
@@ -78,11 +79,11 @@ GLuint texture(const char* input)
 		{ //If it failed, print the error
 	        printf("Error: \"%s\"\n",SDL_GetError());
 	    }
-	    GLuint tex0;
-	    glGenTextures(1, &tex0);
+	    GLuint temp;
+	    glGenTextures(1, &temp);
 	    
 	    glActiveTexture(GL_TEXTURE0);
-	    glBindTexture(GL_TEXTURE_2D, tex0);
+	    glBindTexture(GL_TEXTURE_2D, temp);
 	    
 	    //What to do outside 0-1 range
 	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -96,7 +97,8 @@ GLuint texture(const char* input)
 	    
 	    SDL_FreeSurface(surface);
 
-	    return tex0;
+	    printf("Loading texture: %s\n", input);
+	    return temp;
 }
 
 int main(int argc, char *argv[])
@@ -195,22 +197,10 @@ int main(int argc, char *argv[])
 	//// Allocate Textures ///////
 		string file = "stars.bmp";
 		GLuint tex0 = texture(file.c_str());
+		
 		file = "wood.bmp";
 		GLuint tex1 = texture(file.c_str());
 
-		file = "woodr.bmp";
-		GLuint tex2 = texture(file.c_str());
-		file = "woodg.bmp";
-		GLuint tex3 = texture(file.c_str());
-		file = "woodb.bmp";
-		GLuint tex4 = texture(file.c_str());
-
-		file = "brickr.bmp";
-		GLuint tex5 = texture(file.c_str());
-		file = "brickg.bmp";
-		GLuint tex6 = texture(file.c_str());
-		file = "brickb.bmp";
-		GLuint tex7 = texture(file.c_str());
     //// End Allocate Texture ///////
 	
 	//Build a Vertex Array Object (VAO) to store mapping of shader attributse to VBO
@@ -255,6 +245,19 @@ int main(int argc, char *argv[])
 
 	printf("%s\n",INSTRUCTIONS);
 
+
+/////////////////////////////////////////////////
+// VARIABLES
+int map_w, map_h;
+
+bool up = false, down = false, left = false, right = false;
+float pos_res = 0.05, // resolution (amount we wish to modify things by)
+	th_res = pos_res/2.0;
+
+float c_pos_x, c_pos_y, c_pos_z, c_dir_x = 0.0, c_dir_y = 0.0, c_dir_z = 0.0, c_theta = M_PI;
+/////////////////////////////////////////////////
+
+
 /////////////////////////////////////////////////
 // TODO: could probably work in a class structure of some sort to store all of these variables in a much better way
 // Setting up variables
@@ -264,7 +267,7 @@ int main(int argc, char *argv[])
 // then go through each row and assign coordinates based on row and col where col is placement of character in line
 
 // TODO: find a more efficient way to do this
-	int map_w, map_h;
+
 	vector<string> lines;
 
 	cout << "* BEGIN FILE INPUT" << endl;
@@ -287,24 +290,44 @@ int main(int argc, char *argv[])
 		{
 			lines.push_back(line);
 		}
+
+		//char map[map_w][map_h];
+// Go through the vector<string> and make a 2D array that representst the map
+		//char mapGrid[map_w][map_h];
+		//char** mapGrid = new char[map_w][map_h];
+		
+		char** mapGrid;
+		mapGrid = new char*[map_w];
+		for (int x = 0; x < map_w; x++)
+		{
+			mapGrid[x] = new char[map_h];
+		}
+
+		// then go through array
+		for (int i = 0; i < map_w; i++)
+		{
+			string row = lines[i];
+			for (int j = 0; j < map_h; j++)
+			{
+				char let = row[j];
+				if (let == 'S')
+				{
+					c_pos_x = i+0.5;
+					c_pos_y = j-0.5;
+				}
+				mapGrid[i][j] = let;
+			}
+		}
+
 	cout << "* END FILE INPUT" << endl;
 /////////////////////////////////////////////////
-
-
-
-	// VARIABLES
-		bool up = false, down = false, left = false, right = false;
-		float pos_res = 0.05, // resolution (amount we wish to modify things by)
-			th_res = pos_res/2.0;
-
-		float c_pos_x, c_pos_y, c_pos_z, c_dir_x, c_dir_y, c_dir_z, c_theta;
 
 	//Event Loop (Loop forever processing each event as fast as possible)
 	SDL_Event windowEvent;
 
 	bool quit = false;
 	int initCam = true;
-	float arr[2]; // array for camera position
+	//float arr[2]; // array for camera position
 	while (!quit)
 	{
 		while (SDL_PollEvent(&windowEvent))
@@ -406,44 +429,21 @@ int main(int argc, char *argv[])
 		glm::mat4 proj = glm::perspective(3.14f/4, screenWidth / (float) screenHeight, 0.01f, 100.0f); //FOV, aspect, near, far
 		glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(proj));
 
-	// textures
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, tex0);
-		glUniform1i(glGetUniformLocation(texturedShader, "tex0"), 0);
+		// textures
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, tex0);
+			glUniform1i(glGetUniformLocation(texturedShader, "tex0"), 0);
 
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, tex1);
-		glUniform1i(glGetUniformLocation(texturedShader, "tex1"), 1);
-
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, tex2);
-		glUniform1i(glGetUniformLocation(texturedShader, "tex2"), 2);
-
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, tex3);
-		glUniform1i(glGetUniformLocation(texturedShader, "tex3"), 3);
-
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, tex4);
-		glUniform1i(glGetUniformLocation(texturedShader, "tex4"), 4);
-
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, tex5);
-		glUniform1i(glGetUniformLocation(texturedShader, "tex5"), 5);
-
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, tex6);
-		glUniform1i(glGetUniformLocation(texturedShader, "tex6"), 6);
-
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, tex7);
-		glUniform1i(glGetUniformLocation(texturedShader, "tex7"), 7);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, tex1);
+			glUniform1i(glGetUniformLocation(texturedShader, "tex1"), 1);
 
 
 		glBindVertexArray(vao);
 
-		parseInput(texturedShader, modelList, lines, map_w, map_h, arr);
-		if (initCam)
+		makeMap(texturedShader, modelList, mapGrid, map_w, map_h);
+		//parseInput(texturedShader, modelList, lines, map_w, map_h, arr);
+		/*if (initCam)
 		{
 			c_pos_x = arr[0];
 			c_pos_y = arr[1];
@@ -453,7 +453,7 @@ int main(int argc, char *argv[])
 			c_dir_z = 1.0;
 			c_theta = M_PI;
 			initCam = false;
-		}
+		}*/
 
 		SDL_GL_SwapWindow(window); //Double buffering
 	}
@@ -465,6 +465,57 @@ int main(int argc, char *argv[])
 		SDL_GL_DeleteContext(context);
 		SDL_Quit();
 	return 0;
+}
+
+// makes the map given a 2D array that represents the level
+void makeMap(int texturedShader, int modelList[], char** ret, int w, int h)
+{
+	if (w%2 == 0)
+	{
+		w += 1.0;
+	}
+	if (h%2 == 0)
+	{
+		h += 1.0;
+	}
+	addFloor(texturedShader, modelList, w, h, w/2+0.5, h/2-0.5, -0.5);
+	float z = 0.0;
+	for (int x = 0; x < w; x++)
+	{
+		for (int y = 0; y < h; y++)
+		{
+			char let = ret[x][y];
+			// Wall  is W
+			// Door  is A-E
+			// Key   is a-e
+			// 0     is open (we don't do anything)
+			if (let == 'W')
+			{
+				addModel(texturedShader, modelList, 2, 0, x+0.5, y-0.5, z);
+			}
+			else if ( (let >= 'A') && (let <= 'E') ) // if it's between inclusive A and E then it's a Door
+			{
+				addModel(texturedShader, modelList, 0, -1, x+0.5, y-0.5, z);
+			}
+			else if ( (let >= 'a') && (let <= 'e') ) // if it's between inclusive a and e then it's a key
+			{
+				addModel(texturedShader, modelList, 1, -1, x+0.5, y-0.5, z);
+			}
+			else if (let == 'G')
+			{
+				// TODO!!! USE THE SPHERE AS THE END POINT
+			}
+			else if (let == 'S')
+			{
+				continue; // should have already taken care of this
+			}
+			else
+			{
+				// we don't care
+			}
+
+		}
+	}
 }
 
 void parseInput(int texturedShader, int modelList[], vector<string>input, int w, int h, float arr[])
@@ -528,7 +579,7 @@ void parseInput(int texturedShader, int modelList[], vector<string>input, int w,
 				}
 				else if ( (let >= 'a') && (let <= 'e') ) // if it's between inclusive a and e then it's a key
 				{
-					addModel(texturedShader, modelList, 1, -1, it+0.5, i-0.5, z);
+					addModel(texturedShader, modelList, 1, 2, it+0.5, i-0.5, z);
 				}
 				else // we don't care
 				{
