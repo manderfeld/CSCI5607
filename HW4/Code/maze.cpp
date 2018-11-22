@@ -345,7 +345,7 @@ float c_pos_xi, c_pos_yi;
 	SDL_Event windowEvent;
 
 	bool quit = false;
-	//int initCam = true;
+	bool init = true;
 	while (!quit)
 	{
 		while (SDL_PollEvent(&windowEvent))
@@ -440,29 +440,44 @@ float c_pos_xi, c_pos_yi;
 		glUseProgram(texturedShader);
 		//bool ret = isWalkable(c_pos_x, c_pos_y, c_pos_xi, c_pos_yi);
 
-		bool ret = true;;
-			//int dx = floor(c_pos_x-1 + playerRadius);
-			//int dy = floor(c_pos_y-1 + playerRadius);
-			/*if ( (dx >= 0) && (dx <= map_w) && (dy >= 0) && (dy <= map_h))
-			{
-				//if (mapGrid[dx][dy] == 'W')
-					//ret = false;
-			}
-			else
-			{
-				ret = false;
-			}*/
-			/*if (mapGrid[dx][dy] == 'W')
-			{
-				ret = false;
-			}*/
-
-
-		if (!ret) // if not walkable, do not allow movement
+		if (!init)
 		{
-			c_pos_x = c_pos_xi;
-			c_pos_y = c_pos_yi;
+			bool ret = true;
+
+				// ll    is x-1, y-1
+				// left  is x-1, y
+				// ul    is x-1, y+1
+				// down  is x, y-1
+			/////// you are x, y (don't count this...)
+				// up    is x, y+1
+				// lr    is x+1, y-1
+				// right is x+1, y
+				// ur    is x+1, y+1
+
+			for (signed int dx = -1; dx < 2; dx++)
+			{
+				for (signed int dy = -1; dy < 2; dy++)
+				{
+					if ( (dx==0) && (dy==0) )
+						{continue;} // theoretically this is where we are. ignore
+					int i = floor(c_pos_x + playerRadius*dx);
+					int j = floor(c_pos_y + playerRadius+dy);
+
+					if( (i < 0) || (j < 0) || (i > map_w) || (j > map_h) )
+					{
+						//ret = false;
+					}
+				
+				}
+			}
+			
+			if (!ret) // if not walkable, do not allow movement
+			{
+				c_pos_x = c_pos_xi;
+				c_pos_y = c_pos_yi;
+			}
 		}
+
 		timePast = SDL_GetTicks()/1000.f; 
 		// Have camera look at stuff
 			glm::mat4 view = glm::lookAt(
@@ -491,7 +506,7 @@ float c_pos_xi, c_pos_yi;
 		//parseInput(texturedShader, modelList, lines, map_w, map_h, arr);
 
 		SDL_GL_SwapWindow(window); //Double buffering
-
+		init = false;
 	}
 
 	/*for (int x = 0; x < map_w; x++)
@@ -540,15 +555,37 @@ void makeMap(vector<string> input, map<int, vector< pair<int, char> > > &bigMap,
 
 void makeLevel(int texturedShader, int modelList[], map<int, vector< pair<int, char> > >bigMap, int w, int h)
 {
-	if (w%2 == 0)
+
+
+	float floorw = w;
+	float floorh = h;
+	float floorx, floory;
+//good
+	if (      (w%2==0)&&(h%2==0) )
 	{
-		w += 1.0;
+		floorx = w/2;
+		floory = h/2-1.0;
 	}
-	if (h%2 == 0)
+	//not done
+	else if ( (w%2==0)&&(h%2!=0) )
 	{
-		h += 1.0;
+		floorx = floorw/2;
+		floory = floorh/2;
 	}
-	addFloor(texturedShader, modelList, w, h, w/2+0.5, h/2-0.5, -0.5);
+	// not done
+	else if ( (w%2!=0)&&(h%2==0) )
+	{
+		floorx = floorw/2;
+		floory = floorh/2;
+	}
+//good
+	else if ( (w%2!=0)&&(h%2!=0) )
+	{
+		floorx = w/2+0.5;
+		floory = h/2-0.5;
+	}
+	addFloor(texturedShader, modelList, floorw, floorh, floorx, floory, -0.5);
+	//addFloor(texturedShader, modelList, w, h, w/2+0.5, h/2-0.5, -0.5);
 	float z = 0.0;
 
 	for (map<int, vector< pair<int, char> > >::iterator it = bigMap.begin(); it != bigMap.end(); it++)
