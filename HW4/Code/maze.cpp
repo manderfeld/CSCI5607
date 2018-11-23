@@ -1,28 +1,11 @@
-//Multi-Object, Multi-Texture Example
-//Stephen J. Guy, 2018
-
-//This example demonstartes:
-// Loading multiple models (a cube and a knot)
-// Using multiple textures (wood and brick)
-// Instancing (the teapot is drawn in two locatons)
-// Continuous keyboard input - arrows (moves knot up/down/left/right continueous on being held)
-// Keyboard modifiers - shift (up/down arrows move knot in/out of screen when shift is pressed)
-// Single key events - pressing 'c' changes color of a random teapot
-// Mixing textures and colors for models
-// Phong lighting
-// Binding multiple textures to one shader
-
 const char* INSTRUCTIONS = 
 "***************\n"
-"This demo shows multiple objects being draw at once along with user interaction.\n"
+"This is 3D Maze\n"
 "\n"
-"Up/down/left/right - Moves the knot.\n"
-"c - Changes to teapot to a random color.\n"
+"Up/down     -  move forwards and backwards\n"
+"Left/right  -  rotate to the left or right\n"
 "***************\n"
 ;
-
-//Mac OS build: g++ multiObjectTest.cpp -x c glad/glad.c -g -F/Library/Frameworks -framework SDL2 -framework OpenGL -o MultiObjTest
-//Linux build:  g++ multiObjectTest.cpp -x c glad/glad.c -g -lSDL2 -lSDL2main -lGL -ldl -I/usr/include/SDL2/ -o MultiObjTest
 
 #include "glad/glad.h"  //Include order can matter here
 #if defined(__APPLE__) || defined(__linux__)
@@ -52,10 +35,7 @@ int screenWidth = 800;
 int screenHeight = 600;  
 float timePast = 0;
 
-//SJG: Store the object coordinates
-//You should have a representation for the state of each object
-
-bool DEBUG_ON = true;
+bool DEBUG_ON = false;
 GLuint InitShader(const char* vShaderFileName, const char* fShaderFileName);
 bool fullscreen = false;
 void Win2PPM(int width, int height);
@@ -67,8 +47,8 @@ float rand01(){
 
 // Doors and keys
 // TODO: make these not globals. Maybe classes?
-bool door[5]; // array of possible doors. element at index i will be true when there is a door
-bool key[5]; // likewise but y'know for keys
+map<int, bool> doorInfo;
+map<int, bool> keyInfo;
 	// Colors of doors and keys
 	char colors[5] = {'r' , 'g' , 'b', 'c', 'm'};
 
@@ -198,9 +178,6 @@ int main(int argc, char *argv[])
 		int numVertsSphere = numLines/8;
 		modelFile.close();
 
-	//SJG: I load each model in a different array, then concatenate everything in one big array
-	// This structure works, but there is room for improvement here. Eg., you should store the start
-	// and end of each model a data structure or array somewhere.
 	//Concatenate model arrays
 		int model2Offset = numVertsTeapot*8; // offset used for model2
 		int model3Offset = model2Offset+numVertsKnot*8;
@@ -232,26 +209,26 @@ int main(int argc, char *argv[])
 		modelList[7] = numVertsSphere;
 
 	//// Allocate Textures ///////
-		string file = "stars.bmp";
+		string file = "walls.bmp";
 		GLuint tex0 = texture(file.c_str());
 		
-		file = "wood.bmp";
+		file = "ground.bmp";
 		GLuint tex1 = texture(file.c_str());
 
     //// End Allocate Texture ///////
 	
 	//Build a Vertex Array Object (VAO) to store mapping of shader attributse to VBO
-	GLuint vao;
-	glGenVertexArrays(1, &vao); //Create a VAO
-	glBindVertexArray(vao); //Bind the above created VAO to the current context
+		GLuint vao;
+		glGenVertexArrays(1, &vao); //Create a VAO
+		glBindVertexArray(vao); //Bind the above created VAO to the current context
 
 	//Allocate memory on the graphics card to store geometry (vertex buffer object)
-	GLuint vbo[1];
-	glGenBuffers(1, vbo);  //Create 1 buffer called vbo
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]); //Set the vbo as the active array buffer (Only one buffer can be active at a time)
-	glBufferData(GL_ARRAY_BUFFER, totalNumVerts*8*sizeof(float), modelData, GL_STATIC_DRAW); //upload vertices to vbo
-	//GL_STATIC_DRAW means we won't change the geometry, GL_DYNAMIC_DRAW = geometry changes infrequently
-	//GL_STREAM_DRAW = geom. changes frequently.  This effects which types of GPU memory is used
+		GLuint vbo[1];
+		glGenBuffers(1, vbo);  //Create 1 buffer called vbo
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]); //Set the vbo as the active array buffer (Only one buffer can be active at a time)
+		glBufferData(GL_ARRAY_BUFFER, totalNumVerts*8*sizeof(float), modelData, GL_STATIC_DRAW); //upload vertices to vbo
+		//GL_STATIC_DRAW means we won't change the geometry, GL_DYNAMIC_DRAW = geometry changes infrequently
+		//GL_STREAM_DRAW = geom. changes frequently.  This effects which types of GPU memory is used
 	
 	int texturedShader = InitShader("textured-Vertex.glsl", "textured-Fragment.glsl");	
 	
@@ -283,11 +260,6 @@ int main(int argc, char *argv[])
 	printf("%s\n",INSTRUCTIONS);
 
 
-/////////////////////////////////////////////////
-// VARIABLES
-int map_w, map_h;
-/////////////////////////////////////////////////
-
 
 /////////////////////////////////////////////////
 // TODO: could probably work in a class structure of some sort to store all of these variables in a much better way
@@ -312,8 +284,9 @@ int map_w, map_h;
 			return 0;
 		}
 // First off, get width and height
+		int map_w, map_h;
 		input >> map_w >> map_h;
-		cout << "\tMaking map (w,h):  (" << map_w << ", " << map_h << " )" << endl;
+		cout << "\tMaking map (w,h):  (" << map_w << ", " << map_h << ")" << endl;
 
 // Loop through reading each line and put it in the lines vector
 		string line;
@@ -341,27 +314,12 @@ int map_w, map_h;
 			}
 			cout << endl;
 		}
-		/*for (int i = 0; i < map_w; i++)
-		{
-			vector< pair<int, char> > row;
-			//string row = lines[i];
-			for (int j = 0; j < map_h; j++)
-			{
-				pair<int,char> numchar = row[j];
-				char let = numchar.second;
-				if (let == 'S')
-				{
-					c_pos_x = i+0.5;
-					c_pos_y = j-0.5;
-				}
-				//mapGrid[i][j] = let;
-			}
-		}*/
 
 	cout << "* END FILE INPUT" << endl;
 /////////////////////////////////////////////////
 
 /////////////////////////////////////////////////
+// VARIABLES
 bool up = false, down = false, left = false, right = false;
 float pos_res = 0.05, // resolution (amount we wish to modify things by)
 	th_res = pos_res/2.0;
@@ -369,16 +327,13 @@ float pos_res = 0.05, // resolution (amount we wish to modify things by)
 c_pos_x = arr[0]; c_pos_y = arr[1];
 c_theta = (3*M_PI)/2;
 
-//c_pos_x = arr[0], c_pos_y = arr[1], c_pos_z, c_dir_x, c_dir_y, c_dir_z, c_theta = M_PI;
-//c_pos_xi, c_pos_yi;
-
 /////////////////////////////////////////////////
 
 	//Event Loop (Loop forever processing each event as fast as possible)
 	SDL_Event windowEvent;
 
 	bool quit = false;
-	int init = -500;
+	int init = -1;
 	while (!quit)
 	{
 		while (SDL_PollEvent(&windowEvent))
@@ -460,7 +415,8 @@ c_theta = (3*M_PI)/2;
 		}
 
 		// Clear the screen to default color
-			glClearColor(.2f, 0.4f, 0.8f, 1.0f);
+			//glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+			glClearColor(.3f, 0.5f, 0.9f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram(texturedShader);
@@ -468,6 +424,7 @@ c_theta = (3*M_PI)/2;
 
 		if (init>0)
 		{
+			//cout << "init > 0" << endl;
 			bool ret = true;
 
 				// ll    is x-1, y-1
@@ -489,11 +446,11 @@ c_theta = (3*M_PI)/2;
 					int i = floor(c_pos_x + playerRadius*dx);
 					int j = floor(c_pos_y + playerRadius*dy);
 
-					if( (i < 1) || (j < 1) || (i > map_h) || (j > map_w) )
+					if( (i < 1) || (j < 1) || (i > map_w) || (j > map_h) )
 					{
 						ret = false;
 					}
-					if ( (i>0)&&(i<map_h)&&(j>0)&&(j<map_w) ) 
+					if ( (i>0)&&(i<map_w)&&(j>0)&&(j<map_h) ) 
 					{
 						vector< pair<int, char> > row = bigMap[j];
 						pair<int,char> coord = row[i];
@@ -502,12 +459,36 @@ c_theta = (3*M_PI)/2;
 						{
 							ret = false;
 						}
+						// door
+						else if ( (let>='A') && (let<='E') )
+						{
+							//cout << "it's a door!" << endl;
+							// if it's a door, check if we have the key for it
+							// if we don't have the key, it's a wall
+							if (keyInfo[let-'A'] == true)
+							{
+								//cout << "   don't have key" << endl;
+								//								if (!doorInfo[let-'A'])
+								doorInfo[let-'A'] = true; // set bool to true (we've opened the door, so hide it later)
+								ret = true;
+							}
+							else
+							{
+								ret = false;
+							}
+						}
+						// key
 						else if ( (let>='a') && (let<='e') )
 						{
 							//cout << "I see a key" << endl;
-							key[let-'a'] = true; // change to true
+							keyInfo[let-'a'] = true;
+							//key[let-'a'] = true; // change to true
 							activeItem = let-'a';
 							//cout << "active key is:  " << let << endl;
+						}
+						else if (let == 'G') // if it's the goal we exit the maze! we are free!!
+						{
+							quit = true;
 						}
 					}
 				}
@@ -518,20 +499,6 @@ c_theta = (3*M_PI)/2;
 				c_pos_y = c_pos_yi;
 			}
 		}
-
-		// Look at where we are in the map at our new position
-		/*
-		int i = floor(c_pos_x + playerRadius);
-		int j = floor(c_pos_y + playerRadius);
-		if ( (i>0)&&(i<map_h)&&(j>0)&&(j<map_w) ) 
-		{
-			vector< pair<int, char> > row = bigMap[i];
-			pair<int,char> coord = row[j];
-			char let = coord.second;
-
-			// key
-
-		}*/
 
 		timePast = SDL_GetTicks()/1000.f; 
 		// Have camera look at stuff
@@ -555,9 +522,7 @@ c_theta = (3*M_PI)/2;
 			glUniform1i(glGetUniformLocation(texturedShader, "tex1"), 1);
 
 		glBindVertexArray(vao);
-		//makeMap(texturedShader, modelList, mapGrid, map_w, map_h);
 		makeLevel(texturedShader, modelList, bigMap, map_w, map_h);
-		//parseInput(texturedShader, modelList, lines, map_w, map_h, arr);
 
 		SDL_GL_SwapWindow(window); //Double buffering
 		init++;
@@ -589,14 +554,12 @@ void makeMap(vector<string> input, map<int, vector< pair<int, char> > > &bigMap,
 			char let = row[st]; // each letter is a pair with its y (st) coordinate
 			if (let == 'S')
 			{
-				arr[0] = in;
-				arr[1] = st;
+				arr[0] = float(st)+.5;
+				arr[1] = float(in)+.5;
 			}
 			// its x coordinate is the key of the map. the value is the pair <#coord#, 'char'>
 			pair<int, char> val = make_pair(st, let);
-			//cout << "Adding pair " << st << " , " << let << " to KEY: " << in << endl;
 			bigMap[in].push_back(val);
-			//bigMap.insert(make_pair(in, val));
 		}
 	}
 }
@@ -630,18 +593,26 @@ void makeLevel(int texturedShader, int modelList[], map<int, vector< pair<int, c
 				// 0     is open (we don't do anything)
 			if (let == 'W')
 			{
-				//if ((x==0)&&(y==0))
-				//{
-				//	addModel(texturedShader, modelList, 2, -1, 0, 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
-				//}
-				//else
-				//{
 				addModel(texturedShader, modelList, 2, 0, 0, 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
-				//}
 			}
 			else if ( (let >= 'A') && (let <= 'E') ) // if it's between inclusive A and E then it's a Door
 			{
-				addModel(texturedShader, modelList, 2, -1, (let-'A'), 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
+				if (activeItem < 0) // if no keys have been picked up, just render all door normally
+				{
+					addModel(texturedShader, modelList, 1, -1, (let-'A'), 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
+				}
+				else
+				{
+					if(doorInfo[let-'A']==true)
+					{
+						// hide the door if it's been opened (under the floor)
+						addModel(texturedShader, modelList, 1, -1, (let-'A'), 1.0, 1.0, 1.0, x+0.5, y+0.5, -1.5);
+					}
+					else
+					{
+						addModel(texturedShader, modelList, 1, -1, (let-'A'), 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
+					}
+				}
 			}
 			else if ( (let >= 'a') && (let <= 'e') ) // if it's between inclusive a and e then it's a key
 			{
@@ -658,21 +629,14 @@ void makeLevel(int texturedShader, int modelList[], map<int, vector< pair<int, c
 					if((let-'a') == activeItem)
 					{
 						//cout << "key is in front of person" << endl;
-						addModel(texturedShader, modelList, 0, -1, (let-'a'), 0.2, 0.2, 0.2, c_pos_x+cosf(c_theta), c_pos_y+sinf(c_theta), -.4);
+						addModel(texturedShader, modelList, 0, -1, (let-'a'), 0.1, 0.1, 0.1, c_pos_x+0.2*cosf(c_theta), c_pos_y+0.2*sinf(c_theta), -.04);
 						//c_pos_x + cosf(c_theta), c_pos_y + sinf(c_theta)
-
-						//addModel(texturedShader, modelList, 0, -1, (let-'a'), 0.1, 0.1, 0.1, c_pos_x, c_pos_y+.05, z);
-						//addModel(texturedShader, modelList, 0, -1, (let-'a'), 0.1, 0.1, 0.1, c_pos_x, c_pos_y+.05, z);
-						//addModel(texturedShader, modelList, 1, -1, (let-'a'), 0.5, 0.5, 0.5, c_pos_x+2.5, c_pos_y+2.5, z);
-						//addModel(texturedShader, modelList, 1, -1, (let-'a'), 0.5, 0.5, 0.5, c_pos_x+0.5, c_pos_y+0.5, z);
-						//addModel(texturedShader, modelList, 1, -1, (let-'a'), 1.0, 1.0, 1.0, c_pos_x+0.5, c_pos_y+0.5, z);
-						//addModel(texturedShader, modelList, 1, -1, (let-'a'), 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
 						//if the key has been the most recent item "hold" it in front of the camera
 					}
-					else if(key[let-'a'] == true)
+					else if(keyInfo[let-'a'] == true)
 					{
 						// hide the other taken keys (under the floor)
-						addModel(texturedShader, modelList, 0, -1, (let-'a'), 1.0, 1.0, 1.0, x+0.5, y+0.5, -1.0);
+						addModel(texturedShader, modelList, 0, -1, (let-'a'), 1.0, 1.0, 1.0, x+0.5, y+0.5, -1.5);
 					}
 					// key is not active and has not been taken
 					else
@@ -684,7 +648,6 @@ void makeLevel(int texturedShader, int modelList[], map<int, vector< pair<int, c
 			else if (let == 'G')
 			{
 				addModel(texturedShader, modelList, 2, 1, 5, 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
-				//addModel(texturedShader, modelList, 3, -1, 'n', 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
 			}
 			else if (let == 'S')
 			{
