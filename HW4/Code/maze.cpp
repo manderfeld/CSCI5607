@@ -73,11 +73,15 @@ bool key[5]; // likewise but y'know for keys
 	char colors[5] = {'r' , 'g' , 'b', 'c', 'm'};
 
 // Player attributes and related variables
-int activeKeyType = 0; // change to material of active key
-vector<int> items; // store list of int representing keys
+int activeItem = -1;
+int itemList[5]; // store list of int representing keys, most recent will be in back
+int itemAmt = 0;
 
 float playerRadius = .2;
 float pickupRadius = .22;
+
+float c_pos_x, c_pos_y, c_pos_z, c_dir_x, c_dir_y, c_dir_z, c_theta;
+float c_pos_xi, c_pos_yi;
 
 void makeMap(vector<string>, map<int, vector< pair<int, char> > > &bigMap, float arr[]);
 void makeLevel(int texturedShader, int modelList[], map<int, vector< pair<int, char> > >bigMap, int w, int h);
@@ -344,8 +348,11 @@ bool up = false, down = false, left = false, right = false;
 float pos_res = 0.05, // resolution (amount we wish to modify things by)
 	th_res = pos_res/2.0;
 
-float c_pos_x = arr[0], c_pos_y = arr[1], c_pos_z, c_dir_x, c_dir_y, c_dir_z, c_theta = M_PI;
-float c_pos_xi, c_pos_yi;
+c_pos_x = arr[0]; c_pos_y = arr[1];
+c_theta = M_PI;
+
+//c_pos_x = arr[0], c_pos_y = arr[1], c_pos_z, c_dir_x, c_dir_y, c_dir_z, c_theta = M_PI;
+//c_pos_xi, c_pos_yi;
 
 /////////////////////////////////////////////////
 
@@ -454,40 +461,59 @@ float c_pos_xi, c_pos_yi;
 				// lr    is x+1, y-1
 				// right is x+1, y
 				// ur    is x+1, y+1
-			for (signed int dx = -1; dx < 2; dx++)
+			for (int dx = -1; dx < 2; dx++)
 			{
-				for (signed int dy = -1; dy < 2; dy++)
+				for (int dy = -1; dy < 2; dy++)
 				{
 					if ( (dx==0) || (dy==0) )
 						{continue;} // ignore
 					// If things are weird.. check this (from the lua game seudo code)
 					int i = floor(c_pos_x + playerRadius*dx);
-					int j = floor(c_pos_y + playerRadius+dy);
+					int j = floor(c_pos_y + playerRadius*dy);
 
-					if( (i < 1) || (j < 1) || (i > map_w) || (j > map_h) )
+					if( (i < 1) || (j < 1) || (i > map_h) || (j > map_w) )
 					{
 						ret = false;
 					}
 					if ( (i>0)&&(i<map_h)&&(j>0)&&(j<map_w) ) 
 					{
-						vector< pair<int, char> > row = bigMap[i];
-						pair<int,char> coord = row[j];
+						vector< pair<int, char> > row = bigMap[j];
+						pair<int,char> coord = row[i];
 						char let = coord.second;
 						if(let == 'W')
 						{
 							ret = false;
 						}
+						else if ( (let>='a') && (let<='e') )
+						{
+							//cout << "I see a key" << endl;
+							key[let-'a'] = true; // change to true
+							activeItem = let-'a';
+							//cout << "active key is:  " << let << endl;
+						}
 					}
-
 				}
 			}
-			
 			if (!ret) // if not walkable, do not allow movement
 			{
 				c_pos_x = c_pos_xi;
 				c_pos_y = c_pos_yi;
 			}
 		}
+
+		// Look at where we are in the map at our new position
+		/*
+		int i = floor(c_pos_x + playerRadius);
+		int j = floor(c_pos_y + playerRadius);
+		if ( (i>0)&&(i<map_h)&&(j>0)&&(j<map_w) ) 
+		{
+			vector< pair<int, char> > row = bigMap[i];
+			pair<int,char> coord = row[j];
+			char let = coord.second;
+
+			// key
+
+		}*/
 
 		timePast = SDL_GetTicks()/1000.f; 
 		// Have camera look at stuff
@@ -498,7 +524,7 @@ float c_pos_xi, c_pos_yi;
 			glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
 
 	// may have to change the value of far if the maze is huge
-		glm::mat4 proj = glm::perspective(3.14f/4, screenWidth / (float) screenHeight, 0.01f, 100.0f); //FOV, aspect, near, far
+		glm::mat4 proj = glm::perspective(3.14f/4, screenWidth / (float) screenHeight, 0.005f, 100.0f); //FOV, aspect, near, far
 		glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(proj));
 
 		// textures
@@ -509,7 +535,6 @@ float c_pos_xi, c_pos_yi;
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, tex1);
 			glUniform1i(glGetUniformLocation(texturedShader, "tex1"), 1);
-
 
 		glBindVertexArray(vao);
 		//makeMap(texturedShader, modelList, mapGrid, map_w, map_h);
@@ -598,11 +623,45 @@ void makeLevel(int texturedShader, int modelList[], map<int, vector< pair<int, c
 			}
 			else if ( (let >= 'A') && (let <= 'E') ) // if it's between inclusive A and E then it's a Door
 			{
-				addModel(texturedShader, modelList, 0, -1, (let-'A'), 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
+				addModel(texturedShader, modelList, 2, -1, (let-'A'), 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
 			}
 			else if ( (let >= 'a') && (let <= 'e') ) // if it's between inclusive a and e then it's a key
 			{
-				addModel(texturedShader, modelList, 1, -1, (let-'a'), 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
+				// items.back() is most recent item
+				// key[] has booleans for whether a key has been picked up or not
+
+				if (activeItem < 0) // if no keys have been picked up, just render all keys normally
+				{
+					addModel(texturedShader, modelList, 0, -1, (let-'a'), 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
+				}
+				else
+				{
+					//cout << "there is an activeitem" << endl;
+					if((let-'a') == activeItem)
+					{
+						//cout << "key is in front of person" << endl;
+						addModel(texturedShader, modelList, 0, -1, (let-'a'), 0.2, 0.2, 0.2, c_pos_x+cosf(c_theta), c_pos_y+sinf(c_theta), -.4);
+						//c_pos_x + cosf(c_theta), c_pos_y + sinf(c_theta)
+
+						//addModel(texturedShader, modelList, 0, -1, (let-'a'), 0.1, 0.1, 0.1, c_pos_x, c_pos_y+.05, z);
+						//addModel(texturedShader, modelList, 0, -1, (let-'a'), 0.1, 0.1, 0.1, c_pos_x, c_pos_y+.05, z);
+						//addModel(texturedShader, modelList, 1, -1, (let-'a'), 0.5, 0.5, 0.5, c_pos_x+2.5, c_pos_y+2.5, z);
+						//addModel(texturedShader, modelList, 1, -1, (let-'a'), 0.5, 0.5, 0.5, c_pos_x+0.5, c_pos_y+0.5, z);
+						//addModel(texturedShader, modelList, 1, -1, (let-'a'), 1.0, 1.0, 1.0, c_pos_x+0.5, c_pos_y+0.5, z);
+						//addModel(texturedShader, modelList, 1, -1, (let-'a'), 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
+						//if the key has been the most recent item "hold" it in front of the camera
+					}
+					else if(key[let-'a'] == true)
+					{
+						// hide the other taken keys (under the floor)
+						addModel(texturedShader, modelList, 0, -1, (let-'a'), 1.0, 1.0, 1.0, x+0.5, y+0.5, -1.0);
+					}
+					// key is not active and has not been taken
+					else
+					{
+						addModel(texturedShader, modelList, 0, -1, (let-'a'), 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
+					}
+				}
 			}
 			else if (let == 'G')
 			{
@@ -650,7 +709,7 @@ void addModel(int shaderProgram, int verts[], int mod, int tex, int clr, float w
 	GLint uniTexID = glGetUniformLocation(shaderProgram, "texID");
 	glm::mat4 model;
 
-		// Translate
+	// Translate
 		model = glm::translate(model, glm::vec3(x, y, z));
 	// Scale
 		model = glm::scale(model, glm::vec3(w, h, d));
