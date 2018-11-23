@@ -185,6 +185,18 @@ int main(int argc, char *argv[])
 		printf("%d\n",numLines);
 		int numVertsCube = numLines/8;
 		modelFile.close();
+	//Load Model 4
+		modelFile.open("models/knot.txt");
+		numLines = 0;
+		modelFile >> numLines;
+		float* model4 = new float[numLines];
+		for (int i = 0; i < numLines; i++)
+		{
+			modelFile >> model4[i];
+		}
+		printf("%d\n",numLines);
+		int numVertsSphere = numLines/8;
+		modelFile.close();
 
 	//SJG: I load each model in a different array, then concatenate everything in one big array
 	// This structure works, but there is room for improvement here. Eg., you should store the start
@@ -192,19 +204,23 @@ int main(int argc, char *argv[])
 	//Concatenate model arrays
 		int model2Offset = numVertsTeapot*8; // offset used for model2
 		int model3Offset = model2Offset+numVertsKnot*8;
+		int model4Offset = model3Offset+numVertsCube*8;
 
-		float* modelData = new float[(numVertsTeapot+numVertsKnot+numVertsCube)*8];
+		float* modelData = new float[(numVertsTeapot+numVertsKnot+numVertsCube+numVertsSphere)*8];
 		copy(model1, model1+numVertsTeapot*8, modelData);
 		copy(model2, model2+numVertsKnot*8, modelData+model2Offset);
 		copy(model3, model3+numVertsCube*8, modelData+model3Offset);
-		int totalNumVerts = numVertsTeapot+numVertsKnot+numVertsCube;
+		copy(model4, model4+numVertsSphere*8, modelData+model4Offset);
+
+		int totalNumVerts = numVertsTeapot+numVertsKnot+numVertsCube+numVertsSphere;
 
 		// Put these into an array for startVerts and numVerts of all the models
 		int startVertTeapot = 0;  //The teapot is the first model in the VBO
 		int startVertKnot = numVertsTeapot; //The knot starts right after the taepot
-		int startVertCube = numVertsTeapot + numVertsKnot;
+		int startVertCube = startVertKnot + numVertsKnot;
+		int startVertSphere = startVertCube + numVertsSphere;
 
-		int modelList[3*2]; //make an array the size (number of models)*2 since storing 2 data points for each moel
+		int modelList[4*2]; //make an array the size (number of models)*2 since storing 2 data points for each moel
 		// find a better way to do this, for now hard coding
 		modelList[0] = startVertTeapot;
 		modelList[1] = numVertsTeapot;
@@ -212,6 +228,8 @@ int main(int argc, char *argv[])
 		modelList[3] = numVertsKnot;
 		modelList[4] = startVertCube;
 		modelList[5] = numVertsCube;
+		modelList[6] = startVertSphere;
+		modelList[7] = numVertsSphere;
 
 	//// Allocate Textures ///////
 		string file = "stars.bmp";
@@ -349,7 +367,7 @@ float pos_res = 0.05, // resolution (amount we wish to modify things by)
 	th_res = pos_res/2.0;
 
 c_pos_x = arr[0]; c_pos_y = arr[1];
-c_theta = M_PI;
+c_theta = (3*M_PI)/2;
 
 //c_pos_x = arr[0], c_pos_y = arr[1], c_pos_z, c_dir_x, c_dir_y, c_dir_z, c_theta = M_PI;
 //c_pos_xi, c_pos_yi;
@@ -360,7 +378,7 @@ c_theta = M_PI;
 	SDL_Event windowEvent;
 
 	bool quit = false;
-	bool init = true;
+	int init = -500;
 	while (!quit)
 	{
 		while (SDL_PollEvent(&windowEvent))
@@ -448,7 +466,7 @@ c_theta = M_PI;
 		glUseProgram(texturedShader);
 		//bool ret = isWalkable(c_pos_x, c_pos_y, c_pos_xi, c_pos_yi);
 
-		if (!init)
+		if (init>0)
 		{
 			bool ret = true;
 
@@ -542,7 +560,7 @@ c_theta = M_PI;
 		//parseInput(texturedShader, modelList, lines, map_w, map_h, arr);
 
 		SDL_GL_SwapWindow(window); //Double buffering
-		init = false;
+		init++;
 	}
 
 	//Clean Up
@@ -573,7 +591,7 @@ void makeMap(vector<string> input, map<int, vector< pair<int, char> > > &bigMap,
 			{
 				arr[0] = in;
 				arr[1] = st;
-			}			
+			}
 			// its x coordinate is the key of the map. the value is the pair <#coord#, 'char'>
 			pair<int, char> val = make_pair(st, let);
 			//cout << "Adding pair " << st << " , " << let << " to KEY: " << in << endl;
@@ -665,7 +683,8 @@ void makeLevel(int texturedShader, int modelList[], map<int, vector< pair<int, c
 			}
 			else if (let == 'G')
 			{
-				// TODO!!! USE THE SPHERE AS THE END POINT
+				addModel(texturedShader, modelList, 2, 1, 5, 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
+				//addModel(texturedShader, modelList, 3, -1, 'n', 1.0, 1.0, 1.0, x+0.5, y+0.5, z);
 			}
 			else if (let == 'S')
 			{
@@ -700,6 +719,10 @@ void addModel(int shaderProgram, int verts[], int mod, int tex, int clr, float w
 	else if (clrname == 'm')
 	{
 		colR = 1; colG = 0; colB = 1;
+	}
+	else if (clrname == 'n')
+	{
+		colR = 0; colG = 0; colB = 0;
 	}
 
 	GLint uniColor = glGetUniformLocation(shaderProgram, "inColor");
