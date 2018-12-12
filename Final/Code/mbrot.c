@@ -95,7 +95,12 @@ void key_handler(unsigned char key, int x, int y) {
 		printf("iterations: %d\n", iter);
 		set_uniform1i(prog, "iter", iter);
 		break;
-
+	case 'w':
+		scale *= 1 - zoom_factor * 2.0;
+		printf("scale: %f\n", scale);
+		break;
+	case 'd':
+		scale *= 1 + zoom_factor * 2.0;
 	default:
 		break;
 	}
