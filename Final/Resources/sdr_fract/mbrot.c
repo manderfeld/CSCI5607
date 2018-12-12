@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <GLUT/glut.h>
+#include <GL/glut.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
 #include "util.h"
 
 void draw(void);
